@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Cihazlar — ForenScope{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div>
+    <div style="font-size:16px;font-weight:600;">Cihazlar</div>
+    <div style="font-size:11px;color:var(--fs-muted);margin-top:3px;">
+      {{ page_obj.paginator.count }} kayıtlı cihaz
+    </div>
+  </div>
+</div>
+
+<!-- Search -->
+<form method="get"
+      hx-get="{% url 'service:device_list' %}"
+      hx-target="#device-table"
+      hx-trigger="keyup changed delay:400ms from:input"
+      style="margin-bottom:16px;">
+  <input name="q" value="{{ request.GET.q }}" class="fs-input"
+         placeholder="Seri no, model veya müşteri ara..."
+         style="max-width:380px;">
+</form>
+
+<div class="fs-panel" id="device-table">
+  <table class="fs-table">
+    <thead>
+      <tr>
+        <th>Seri No</th>
+        <th>Aile</th>
+        <th>Model</th>
+        <th>Müşteri</th>
+        <th style="text-align:right;">Toplam Kayıt</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for device in devices %}
+      <tr>
+        <td>
+          <span class="fs-code">{{ device.serial_no }}</span>
+        </td>
+        <td style="color:var(--fs-muted);font-size:10px;">{{ device.get_family_display }}</td>
+        <td style="color:var(--fs-muted);font-size:10px;">{{ device.model_name|default:"—" }}</td>
+        <td style="font-size:11px;">{{ device.customer_name|default:"—" }}</td>
+        <td style="text-align:right;">
+          <span style="color:var(--fs-accent);font-weight:600;font-size:11px;">{{ device.ticket_count }}</span>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="text-align:center;color:var(--fs-muted);padding:30px 0;">
+          Cihaz bulunamadı
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--fs-border);">
+    <div style="font-size:10px;color:var(--fs-muted);">
+      {{ page_obj.paginator.count }} cihazdan {{ page_obj.start_index }}–{{ page_obj.end_index }} gösteriliyor
+    </div>
+    <div style="display:flex;gap:4px;">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}"
+         style="background:var(--fs-surface2);border:1px solid var(--fs-border2);color:var(--fs-muted);padding:4px 10px;border-radius:5px;font-size:10px;text-decoration:none;">←</a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span style="background:var(--fs-accent);color:#fff;padding:4px 10px;border-radius:5px;font-size:10px;">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}&{{ request.GET.urlencode }}"
+           style="background:var(--fs-surface2);border:1px solid var(--fs-border2);color:var(--fs-muted);padding:4px 10px;border-radius:5px;font-size:10px;text-decoration:none;">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}"
+         style="background:var(--fs-surface2);border:1px solid var(--fs-border2);color:var(--fs-muted);padding:4px 10px;border-radius:5px;font-size:10px;text-decoration:none;">→</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

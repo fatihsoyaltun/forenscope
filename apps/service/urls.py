@@ -1,20 +1,20 @@
 from django.urls import path
-from django.views.generic import TemplateView
+from . import views
 
 app_name = 'service'
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='service/ticket_list.html'), name='ticket_list'),
-    path('new/', TemplateView.as_view(template_name='service/ticket_create.html'), name='ticket_create'),
-    path('devices/', TemplateView.as_view(template_name='core/dashboard.html'), name='device_list'),
-    path('parts/', TemplateView.as_view(template_name='core/dashboard.html'), name='part_list'),
-    path('audit/', TemplateView.as_view(template_name='core/dashboard.html'), name='audit_log'),
-    path('device-lookup/', TemplateView.as_view(template_name='core/dashboard.html'), name='device_lookup'),
-    path('symptoms/<int:category_id>/', TemplateView.as_view(template_name='core/dashboard.html'), name='symptom_by_category'),
-    path('att/<int:pk>/download/', TemplateView.as_view(template_name='core/dashboard.html'), name='attachment_download'),
-    path('att/<int:pk>/upload/', TemplateView.as_view(template_name='core/dashboard.html'), name='attachment_upload'),
-    path('<str:code>/', TemplateView.as_view(template_name='service/ticket_detail.html'), name='ticket_detail'),
-    path('<str:code>/resolve/', TemplateView.as_view(template_name='service/ticket_resolve.html'), name='ticket_resolve'),
-    path('<str:code>/edit/', TemplateView.as_view(template_name='service/ticket_create.html'), name='ticket_edit'),
-    path('<str:code>/comment/', TemplateView.as_view(template_name='core/dashboard.html'), name='ticket_comment'),
+    path('', views.TicketListView.as_view(), name='ticket_list'),
+    path('new/', views.TicketCreateView.as_view(), name='ticket_create'),
+    path('devices/', views.DeviceListView.as_view(), name='device_list'),
+    path('parts/', views.PartListView.as_view(), name='part_list'),
+    path('audit/', views.AuditLogView.as_view(), name='audit_log'),
+    path('device-lookup/', views.DeviceLookupView.as_view(), name='device_lookup'),
+    path('symptoms/<int:category_id>/', views.SymptomByCategoryView.as_view(), name='symptom_by_category'),
+    path('att/<int:pk>/download/', views.AttachmentDownloadView.as_view(), name='attachment_download'),
+    path('<str:code>/att/upload/', views.AttachmentUploadView.as_view(), name='attachment_upload'),
+    path('<str:code>/', views.TicketDetailView.as_view(), name='ticket_detail'),
+    path('<str:code>/resolve/', views.TicketResolveView.as_view(), name='ticket_resolve'),
+    path('<str:code>/edit/', views.TicketUpdateView.as_view(), name='ticket_edit'),
+    path('<str:code>/comment/', views.TicketCommentView.as_view(), name='ticket_comment'),
 ]

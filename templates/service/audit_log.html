@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Audit Log — ForenScope{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:20px;">
+  <div style="font-size:16px;font-weight:600;">Audit Log</div>
+  <div style="font-size:11px;color:var(--fs-muted);margin-top:3px;">
+    Son 200 değişiklik kaydı
+  </div>
+</div>
+
+<div class="fs-panel">
+  <table class="fs-table">
+    <thead>
+      <tr>
+        <th>Zaman</th>
+        <th>Kullanıcı</th>
+        <th>Model</th>
+        <th>İşlem</th>
+        <th>Değişiklikler</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="color:var(--fs-muted);font-size:10px;white-space:nowrap;">
+          {{ log.timestamp|date:"d.m.Y H:i" }}
+        </td>
+        <td style="font-size:10px;">{{ log.actor|default:"Sistem" }}</td>
+        <td style="font-size:10px;color:var(--fs-muted);">{{ log.content_type }}</td>
+        <td>
+          {% if log.action == 0 %}
+          <span class="pill pill-res">Oluşturma</span>
+          {% elif log.action == 1 %}
+          <span class="pill pill-inv">Güncelleme</span>
+          {% elif log.action == 2 %}
+          <span class="pill pill-part">Silme</span>
+          {% else %}
+          <span class="pill pill-cls">{{ log.get_action_display }}</span>
+          {% endif %}
+        </td>
+        <td style="font-size:10px;color:var(--fs-muted);">
+          {{ log.changes_str|truncatechars:100 }}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="text-align:center;color:var(--fs-muted);padding:30px 0;">
+          Log kaydı yok
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

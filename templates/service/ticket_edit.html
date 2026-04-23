@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.code }} Düzenle — ForenScope{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div>
+    <div style="font-size:16px;font-weight:600;">Ticket Düzenle</div>
+    <div style="font-size:11px;color:var(--fs-muted);margin-top:3px;">
+      <span class="fs-code">{{ object.code }}</span> &middot; {{ object.device.serial_no }}
+    </div>
+  </div>
+  <a href="{% url 'service:ticket_detail' object.code %}" class="btn-ghost">← Geri</a>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+    <div>
+      <div class="fs-panel" style="margin-bottom:14px;">
+        <div class="fs-panel-title">Sorun Bilgileri</div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Arıza Kategorisi <span style="color:var(--fs-red);">*</span>
+          </label>
+          <select name="fault_category" class="fs-select" style="width:100%;"
+                  hx-get="{% url 'service:symptom_by_category' 0 %}"
+                  hx-trigger="change"
+                  hx-target="#symptom-select"
+                  hx-include="[name='fault_category']">
+            <option value="">— Seçin —</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}"
+              {% if form.fault_category.value == cat.id|stringformat:"s" %}selected{% endif %}>
+              {{ cat.name }}
+            </option>
+            {% endfor %}
+          </select>
+          {% if form.fault_category.errors %}
+          <div style="color:var(--fs-red);font-size:10px;margin-top:4px;">{{ form.fault_category.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Belirti
+          </label>
+          <div id="symptom-select">
+            <select name="symptom" class="fs-select" style="width:100%;">
+              <option value="">— Seçin —</option>
+              {% for s in form.symptom.field.queryset %}
+              <option value="{{ s.id }}"
+                {% if form.symptom.value == s.id|stringformat:"s" %}selected{% endif %}>
+                {{ s.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Konu <span style="color:var(--fs-red);">*</span>
+          </label>
+          <input type="text" name="subject" class="fs-input"
+                 value="{{ form.subject.value|default:'' }}"
+                 placeholder="Kısa sorun özeti">
+          {% if form.subject.errors %}
+          <div style="color:var(--fs-red);font-size:10px;margin-top:4px;">{{ form.subject.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div>
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Açıklama <span style="color:var(--fs-red);">*</span>
+          </label>
+          <textarea name="description" class="fs-textarea" rows="5"
+                    placeholder="Sorunun ayrıntılı açıklaması...">{{ form.description.value|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="fs-panel" style="margin-bottom:14px;">
+        <div class="fs-panel-title">Atama ve Durum</div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">Durum</label>
+          <select name="status" class="fs-select" style="width:100%;">
+            <option value="new"           {% if form.status.value == 'new' %}selected{% endif %}>Yeni</option>
+            <option value="investigating" {% if form.status.value == 'investigating' %}selected{% endif %}>İnceleniyor</option>
+            <option value="waiting_part"  {% if form.status.value == 'waiting_part' %}selected{% endif %}>Parça Bekleniyor</option>
+            <option value="in_progress"   {% if form.status.value == 'in_progress' %}selected{% endif %}>İşlemde</option>
+            <option value="resolved"      {% if form.status.value == 'resolved' %}selected{% endif %}>Çözüldü</option>
+            <option value="closed"        {% if form.status.value == 'closed' %}selected{% endif %}>Kapatıldı</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">Öncelik</label>
+          <select name="priority" class="fs-select" style="width:100%;">
+            <option value="low"      {% if form.priority.value == 'low' %}selected{% endif %}>Düşük</option>
+            <option value="normal"   {% if form.priority.value == 'normal' %}selected{% endif %}>Normal</option>
+            <option value="high"     {% if form.priority.value == 'high' %}selected{% endif %}>Yüksek</option>
+            <option value="critical" {% if form.priority.value == 'critical' %}selected{% endif %}>Kritik</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">Atanan Kişi</label>
+          <select name="assigned_to" class="fs-select" style="width:100%;">
+            <option value="">— Atanmadı —</option>
+            {% for u in technicians %}
+            <option value="{{ u.id }}"
+              {% if form.assigned_to.value == u.id|stringformat:"s" %}selected{% endif %}>
+              {{ u.get_full_name|default:u.username }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="fs-panel" style="background:var(--fs-surface2);">
+        <div class="fs-panel-title">Cihaz (salt okunur)</div>
+        <div style="display:grid;grid-template-columns:80px 1fr;gap:7px;font-size:11px;">
+          <div style="color:var(--fs-muted);">Seri No</div><div>{{ object.device.serial_no }}</div>
+          <div style="color:var(--fs-muted);">Aile</div><div>{{ object.device.get_family_display }}</div>
+          <div style="color:var(--fs-muted);">Müşteri</div><div>{{ object.device.customer_name|default:"—" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-top:16px;">
+    <button type="submit" class="btn-primary">Kaydet</button>
+    <a href="{% url 'service:ticket_detail' object.code %}" class="btn-ghost">İptal</a>
+  </div>
+</form>
+{% endblock %}
