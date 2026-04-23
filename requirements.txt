@@ -11,3 +11,4 @@ python-magic==0.4.*
 Pillow==10.*
 django-environ==0.11.*
 whitenoise==6.*
+qrcode[pil]==7.*

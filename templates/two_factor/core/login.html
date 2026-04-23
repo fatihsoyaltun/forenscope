@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giriş — ForenScope</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { --fs-bg:#0f1117; --fs-surface:#1a1d27; --fs-border:rgba(255,255,255,0.08); --fs-border2:rgba(255,255,255,0.14); --fs-text:#e8eaf0; --fs-muted:#8b90a0; --fs-accent:#4f8ef7; --fs-red:#ef4444; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--fs-bg); color:var(--fs-text); font-family:'SF Mono','JetBrains Mono',monospace; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .card { background:var(--fs-surface); border:1px solid var(--fs-border); border-radius:12px; padding:36px 32px; width:100%; max-width:380px; }
+    .brand-name { font-size:16px; font-weight:600; letter-spacing:0.05em; margin-bottom:4px; }
+    .brand-sub { font-size:10px; color:var(--fs-muted); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:28px; }
+    label { display:block; font-size:10px; color:var(--fs-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; margin-top:16px; }
+    input[type="text"], input[type="password"] { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--fs-border2); color:var(--fs-text); padding:10px 12px; border-radius:6px; font-size:12px; font-family:inherit; }
+    input:focus { outline:none; border-color:var(--fs-accent); }
+    .btn { width:100%; background:var(--fs-accent); color:#fff; border:none; padding:11px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; margin-top:22px; }
+    .error { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#f87171; padding:10px 14px; border-radius:6px; font-size:11px; margin-top:14px; }
+    .step-info { font-size:11px; color:var(--fs-muted); background:rgba(79,142,247,0.08); border:1px solid rgba(79,142,247,0.15); border-radius:6px; padding:10px 14px; margin-bottom:16px; }
+    .divider { height:1px; background:var(--fs-border); margin:24px 0; }
+    .footer { font-size:10px; color:var(--fs-muted); text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand-name">ForenScope</div>
+    <div class="brand-sub">Service Intelligence — Şirket İçi Erişim</div>
+
+    {% if wizard.steps.current == 'auth' %}
+    <form method="post">
+      {% csrf_token %}
+      {{ wizard.management_form }}
+      {% if form.errors %}
+      <div class="error">Kullanıcı adı veya şifre hatalı.</div>
+      {% endif %}
+      <label for="id_auth-username">Kullanıcı Adı</label>
+      <input type="text" name="auth-username" id="id_auth-username" autofocus autocomplete="username">
+      <label for="id_auth-password">Şifre</label>
+      <input type="password" name="auth-password" id="id_auth-password" autocomplete="current-password">
+      <button type="submit" class="btn">Devam Et →</button>
+    </form>
+
+    {% elif wizard.steps.current == 'token' %}
+    <div class="step-info">📱 Kimlik doğrulayıcı uygulamanızdaki 6 haneli kodu girin</div>
+    <form method="post">
+      {% csrf_token %}
+      {{ wizard.management_form }}
+      {% if form.errors %}
+      <div class="error">Geçersiz kod. Tekrar deneyin.</div>
+      {% endif %}
+      <label for="id_token-otp_token">Doğrulama Kodu</label>
+      <input type="text" name="token-otp_token" id="id_token-otp_token"
+             autofocus autocomplete="off" maxlength="6" inputmode="numeric"
+             style="letter-spacing:0.3em;font-size:18px;text-align:center;">
+      <button type="submit" class="btn">Giriş Yap →</button>
+    </form>
+    {% endif %}
+
+    <div class="divider"></div>
+    <div class="footer">Yalnızca yetkili personel erişebilir</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Profil — ForenScope{% endblock %}
+{% block content %}
+<div style="max-width:600px;">
+  <div style="font-size:16px;font-weight:600;margin-bottom:20px;">Profil</div>
+
+  <div class="fs-panel" style="margin-bottom:14px;">
+    <div class="fs-panel-title">Hesap Bilgileri</div>
+    <div style="display:grid;grid-template-columns:120px 1fr;gap:10px;font-size:12px;">
+      <div style="color:var(--fs-muted);">Kullanıcı Adı</div><div>{{ user.username }}</div>
+      <div style="color:var(--fs-muted);">Ad Soyad</div><div>{{ user.get_full_name|default:"—" }}</div>
+      <div style="color:var(--fs-muted);">E-posta</div><div>{{ user.email|default:"—" }}</div>
+      <div style="color:var(--fs-muted);">Departman</div><div>{{ user.department|default:"—" }}</div>
+      <div style="color:var(--fs-muted);">Grup</div>
+      <div>{% for g in user.groups.all %}<span style="background:rgba(79,142,247,0.1);color:var(--fs-accent);font-size:10px;padding:2px 8px;border-radius:4px;margin-right:4px;">{{ g.name }}</span>{% endfor %}</div>
+    </div>
+  </div>
+
+  <div class="fs-panel">
+    <div class="fs-panel-title">İki Faktörlü Kimlik Doğrulama</div>
+    {% if mfa_active %}
+    <div style="color:var(--fs-green);font-size:12px;margin-bottom:12px;">✓ MFA aktif</div>
+    <a href="{% url 'two_factor:profile' %}" class="btn-ghost" style="font-size:11px;">MFA Ayarlarını Yönet</a>
+    {% else %}
+    <div style="color:var(--fs-yellow);font-size:12px;margin-bottom:12px;">⚠ MFA henüz kurulmadı</div>
+    <a href="{% url 'two_factor:setup' %}" class="btn-primary" style="font-size:11px;">MFA Kur →</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

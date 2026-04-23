@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
+    'apps.accounts.middleware.AdminMFARequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
@@ -119,9 +120,16 @@ MEDIA_ROOT = BASE_DIR / env('MEDIA_ROOT', default='media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/accounts/login/'
+# Two-factor auth
+TWO_FACTOR_PATCH_ADMIN = True
+LOGIN_URL = 'two_factor:login'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/'
+
+# Session security
+SESSION_COOKIE_AGE = 28800
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_HTTPONLY = True
 
 # File upload limits
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10MB in memory
@@ -129,8 +137,10 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 600 * 1024 * 1024  # 600MB total
 
 # Axes (brute force protection)
 AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = 1  # hours
+AXES_COOLOFF_TIME = 1
 AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_TEMPLATE = 'accounts/lockout.html'
+AXES_USERNAME_FORM_FIELD = 'auth-username'
 
 # Logging
 LOGGING = {

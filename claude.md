@@ -69,8 +69,8 @@ python manage.py test
 ## Completed Phases
 - [x] Phase 0: Project skeleton ✓
 - [x] Phase 1: Service data models
-- [ ] Phase 2: Views and forms
-- [ ] Phase 3: Auth, permissions, MFA
+- [x] Phase 2: Views and forms
+- [x] Phase 3: Auth, permissions, MFA
 - [ ] Phase 4: Knowledge base
 - [ ] Phase 5: Dashboard with real data
 - [ ] Phase 6: Production deploy

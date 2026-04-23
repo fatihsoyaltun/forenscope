@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width:500px;margin:40px auto;">
+  <div class="fs-panel">
+    <div style="font-size:16px;font-weight:600;margin-bottom:20px;">İki Faktörlü Doğrulama Kurulumu</div>
+    {% if otpauth_url %}
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--fs-muted);margin-bottom:12px;">
+        Telefonundaki authenticator uygulamasıyla QR kodu tara:
+      </div>
+      <div style="background:#fff;padding:16px;border-radius:8px;display:inline-block;">
+        {{ qr_code }}
+      </div>
+    </div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div style="margin-bottom:12px;">
+        <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+          Doğrulama Kodu
+        </label>
+        {{ form.otp_token }}
+      </div>
+      <button type="submit" class="btn-primary">Doğrula ve Etkinleştir</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
