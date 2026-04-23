@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ article.title }} — ForenScope{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+  <a href="{% url 'knowledge:article_list' %}" style="font-size:10px;color:var(--fs-muted);text-decoration:none;">
+    ← Bilgi Bankasına Dön
+  </a>
+  <div style="display:flex;gap:8px;">
+    {% if user.groups.filter(name='Admin').exists %}
+      {% if article.status == 'draft' or article.status == 'review' %}
+      <form method="post" action="{% url 'knowledge:article_approve' article.slug %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-primary" style="font-size:10px;">✓ Onayla ve Yayınla</button>
+      </form>
+      {% endif %}
+      <a href="{% url 'knowledge:article_edit' article.slug %}" class="btn-ghost">Düzenle</a>
+      <form method="post" action="{% url 'knowledge:article_archive' article.slug %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-ghost" style="color:var(--fs-muted);">Arşivle</button>
+      </form>
+    {% elif user.groups.filter(name='Technician').exists %}
+      <a href="{% url 'service:ticket_create' %}?note=Makale+düzeltme+talebi:+{{ article.slug }}"
+         class="btn-ghost" style="font-size:10px;">Düzeltme Talebi Aç</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Article Header -->
+<div class="fs-panel" style="margin-bottom:16px;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <span style="font-size:10px;background:rgba(79,142,247,0.1);color:var(--fs-accent);padding:3px 10px;border-radius:4px;">
+      {{ article.device_family }}
+    </span>
+    <span style="font-size:10px;color:var(--fs-muted);">{{ article.fault_category.name }}</span>
+    <span style="font-size:10px;color:var(--fs-muted);">→ {{ article.symptom.name }}</span>
+    <span style="margin-left:auto;">
+      {% if article.status == 'published' %}
+      <span class="pill pill-res">Onaylı</span>
+      {% elif article.status == 'review' %}
+      <span class="pill pill-inv">İncelemede</span>
+      {% elif article.status == 'draft' %}
+      <span class="pill pill-cls">Taslak</span>
+      {% endif %}
+    </span>
+  </div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:10px;">{{ article.title }}</div>
+  <div style="font-size:12px;color:var(--fs-muted);line-height:1.7;margin-bottom:14px;">
+    {{ article.summary }}
+  </div>
+  <div style="display:flex;gap:20px;padding-top:12px;border-top:1px solid var(--fs-border);">
+    <div style="font-size:10px;color:var(--fs-muted);">Yazar: <span style="color:var(--fs-text);">{{ article.author.get_full_name|default:article.author.username }}</span></div>
+    {% if article.approved_by %}
+    <div style="font-size:10px;color:var(--fs-muted);">Onaylayan: <span style="color:var(--fs-green);">{{ article.approved_by.get_full_name|default:article.approved_by.username }}</span></div>
+    <div style="font-size:10px;color:var(--fs-muted);">{{ article.approved_at|date:"d.m.Y" }}</div>
+    {% endif %}
+    <div style="font-size:10px;color:var(--fs-muted);">Versiyon: <span style="color:var(--fs-text);">v{{ article.version }}</span></div>
+    <div style="font-size:10px;color:var(--fs-muted);">{{ article.view_count }} görüntüleme</div>
+    {% if article.source_ticket %}
+    <div style="font-size:10px;color:var(--fs-muted);">Kaynak:
+      <a href="{% url 'service:ticket_detail' article.source_ticket.code %}" style="color:var(--fs-accent);">
+        {{ article.source_ticket.code }}
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 280px;gap:14px;">
+
+  <!-- Left: Solution Body -->
+  <div>
+    <div class="fs-panel" style="margin-bottom:14px;">
+      <div class="fs-panel-title">Çözüm Rehberi</div>
+      <div style="font-size:12px;color:var(--fs-muted);line-height:1.9;white-space:pre-wrap;">{{ article.solution_body }}</div>
+    </div>
+
+    {% if article.verification_checklist %}
+    <div class="fs-panel" style="margin-bottom:14px;">
+      <div class="fs-panel-title">Doğrulama Kontrol Listesi</div>
+      {% for line in article.verification_checklist.splitlines %}
+      {% if line.strip %}
+      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--fs-border);">
+        <div style="width:16px;height:16px;border:1px solid var(--fs-border2);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--fs-muted);">✓</div>
+        <div style="font-size:11px;color:var(--fs-muted);">{{ line }}</div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Attachments -->
+    {% if article.attachments.exists %}
+    <div class="fs-panel">
+      <div class="fs-panel-title">Ekler ve Videolar</div>
+      {% for att in article.attachments.all %}
+      <div style="margin-bottom:12px;">
+        {% if att.kind == 'video' %}
+        <div style="font-size:10px;color:var(--fs-muted);margin-bottom:6px;">{{ att.title|default:att.original_name }}</div>
+        <video controls style="width:100%;border-radius:6px;background:#000;max-height:300px;">
+          <source src="{% url 'knowledge:attachment_stream' att.pk %}">
+          Tarayıcınız video oynatmayı desteklemiyor.
+        </video>
+        {% elif att.kind == 'photo' %}
+        <div style="font-size:10px;color:var(--fs-muted);margin-bottom:6px;">{{ att.title|default:att.original_name }}</div>
+        <img src="{% url 'knowledge:attachment_stream' att.pk %}"
+             style="max-width:100%;border-radius:6px;border:1px solid var(--fs-border);">
+        {% else %}
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--fs-border);">
+          <div style="font-size:11px;color:var(--fs-text);flex:1;">{{ att.title|default:att.original_name }}</div>
+          <a href="{% url 'knowledge:attachment_download' att.pk %}"
+             style="font-size:10px;color:var(--fs-accent);text-decoration:none;">↓ İndir</a>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: Meta + Related -->
+  <div>
+    {% if article.tags %}
+    <div class="fs-panel" style="margin-bottom:12px;">
+      <div class="fs-panel-title">Etiketler</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        {% for tag in article.tags.split %}
+        <span style="font-size:10px;background:var(--fs-surface2);color:var(--fs-muted);padding:3px 10px;border-radius:20px;border:1px solid var(--fs-border);">{{ tag }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="fs-panel" style="margin-bottom:12px;">
+      <div class="fs-panel-title">Versiyon Geçmişi</div>
+      {% for h in article.history.all|slice:":5" %}
+      <div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--fs-border);font-size:10px;">
+        <div style="color:var(--fs-muted);flex-shrink:0;">{{ h.history_date|date:"d.m.Y H:i" }}</div>
+        <div style="color:var(--fs-muted);">{{ h.history_user|default:"—" }}</div>
+        <div style="color:var(--fs-text);margin-left:auto;">v{{ h.version }}</div>
+      </div>
+      {% empty %}
+      <div style="color:var(--fs-muted);font-size:10px;">İlk versiyon</div>
+      {% endfor %}
+    </div>
+
+    {% if related_articles %}
+    <div class="fs-panel">
+      <div class="fs-panel-title">İlgili Makaleler</div>
+      {% for rel in related_articles %}
+      <a href="{% url 'knowledge:article_detail' rel.slug %}"
+         style="display:block;padding:8px 0;border-bottom:1px solid var(--fs-border);text-decoration:none;">
+        <div style="font-size:11px;color:var(--fs-text);margin-bottom:3px;">{{ rel.title|truncatechars:50 }}</div>
+        <div style="font-size:9px;color:var(--fs-muted);">{{ rel.device_family }} · {{ rel.fault_category.name }}</div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

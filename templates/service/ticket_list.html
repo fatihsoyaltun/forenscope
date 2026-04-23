@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Servis Kayıtları — ForenScope{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div>
+    <div style="font-size:16px;font-weight:600;">Servis Kayıtları</div>
+    <div style="font-size:11px;color:var(--fs-muted);margin-top:3px;">
+      {{ page_obj.paginator.count }} kayıt &middot; {{ open_count }} açık
+    </div>
+  </div>
+  {% if perms.service.add_serviceticket %}
+  <a href="{% url 'service:ticket_create' %}" class="btn-primary">+ Yeni Kayıt</a>
+  {% endif %}
+</div>
+
+<!-- Filter Bar -->
+<form method="get"
+      hx-get="{% url 'service:ticket_list' %}"
+      hx-target="#ticket-table"
+      hx-trigger="change from:select, keyup changed delay:400ms from:input"
+      style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+  <input name="q" value="{{ request.GET.q }}" class="fs-input"
+    placeholder="Konu, seri no veya müşteri ara..."
+    style="flex:1;min-width:200px;">
+  <select name="status" class="fs-select">
+    <option value="">Tüm Durumlar</option>
+    <option value="new"          {% if request.GET.status == 'new' %}selected{% endif %}>Yeni</option>
+    <option value="investigating" {% if request.GET.status == 'investigating' %}selected{% endif %}>İnceleniyor</option>
+    <option value="waiting_part" {% if request.GET.status == 'waiting_part' %}selected{% endif %}>Parça Bekleniyor</option>
+    <option value="in_progress"  {% if request.GET.status == 'in_progress' %}selected{% endif %}>İşlemde</option>
+    <option value="resolved"     {% if request.GET.status == 'resolved' %}selected{% endif %}>Çözüldü</option>
+    <option value="closed"       {% if request.GET.status == 'closed' %}selected{% endif %}>Kapatıldı</option>
+  </select>
+  <select name="priority" class="fs-select">
+    <option value="">Tüm Öncelikler</option>
+    <option value="critical" {% if request.GET.priority == 'critical' %}selected{% endif %}>Kritik</option>
+    <option value="high"     {% if request.GET.priority == 'high' %}selected{% endif %}>Yüksek</option>
+    <option value="normal"   {% if request.GET.priority == 'normal' %}selected{% endif %}>Normal</option>
+    <option value="low"      {% if request.GET.priority == 'low' %}selected{% endif %}>Düşük</option>
+  </select>
+  <select name="family" class="fs-select">
+    <option value="">Tüm Cihazlar</option>
+    <option value="8K"      {% if request.GET.family == '8K' %}selected{% endif %}>8K</option>
+    <option value="4K"      {% if request.GET.family == '4K' %}selected{% endif %}>4K</option>
+    <option value="TZOOM"   {% if request.GET.family == 'TZOOM' %}selected{% endif %}>T-Zoom</option>
+    <option value="SSFORCE" {% if request.GET.family == 'SSFORCE' %}selected{% endif %}>SuperSpectral</option>
+  </select>
+  <select name="category" class="fs-select">
+    <option value="">Tüm Kategoriler</option>
+    {% for cat in categories %}
+    <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+    {% endfor %}
+  </select>
+  {% if request.GET %}
+  <a href="{% url 'service:ticket_list' %}"
+     style="font-size:11px;color:var(--fs-muted);text-decoration:none;padding:8px 10px;">Temizle ✕</a>
+  {% endif %}
+</form>
+
+<!-- Table -->
+<div class="fs-panel" id="ticket-table">
+  <table class="fs-table">
+    <thead>
+      <tr>
+        <th>Kod</th>
+        <th>Cihaz / Seri</th>
+        <th>Konu</th>
+        <th>Kategori</th>
+        <th>Öncelik</th>
+        <th>Durum</th>
+        <th>Atanan</th>
+        <th>Tarih</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in page_obj %}
+      <tr>
+        <td>
+          <a href="{% url 'service:ticket_detail' ticket.code %}" class="fs-code">
+            {{ ticket.code }}
+          </a>
+        </td>
+        <td style="color:var(--fs-muted);font-size:10px;">
+          {{ ticket.device.family }} &middot; {{ ticket.device.serial_no }}
+        </td>
+        <td>{{ ticket.subject|truncatechars:40 }}</td>
+        <td style="color:var(--fs-muted);font-size:10px;">
+          {{ ticket.fault_category.name|default:"—" }}
+        </td>
+        <td>
+          <span class="pill pill-{{ ticket.priority }}">
+            {{ ticket.get_priority_display }}
+          </span>
+        </td>
+        <td>
+          <span class="pill pill-{{ ticket.status }}">
+            {{ ticket.get_status_display }}
+          </span>
+        </td>
+        <td>
+          {% if ticket.assigned_to %}
+          <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4f8ef7,#6c63ff);display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;" title="{{ ticket.assigned_to.get_full_name }}">
+            {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username|slice:":2"|upper }}
+          </div>
+          {% else %}
+          <span style="color:var(--fs-muted);font-size:10px;">—</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--fs-muted);font-size:10px;">
+          {{ ticket.created_at|date:"d.m.Y" }}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="text-align:center;color:var(--fs-muted);padding:30px 0;">
+          Kayıt bulunamadı
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--fs-border);">
+    <div style="font-size:10px;color:var(--fs-muted);">
+      {{ page_obj.paginator.count }} kayıttan
+      {{ page_obj.start_index }}–{{ page_obj.end_index }} gösteriliyor
+    </div>
+    <div style="display:flex;gap:4px;">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}"
+         style="background:var(--fs-surface2);border:1px solid var(--fs-border2);color:var(--fs-muted);padding:4px 10px;border-radius:5px;font-size:10px;text-decoration:none;">←</a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span style="background:var(--fs-accent);color:#fff;padding:4px 10px;border-radius:5px;font-size:10px;">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}&{{ request.GET.urlencode }}"
+           style="background:var(--fs-surface2);border:1px solid var(--fs-border2);color:var(--fs-muted);padding:4px 10px;border-radius:5px;font-size:10px;text-decoration:none;">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}"
+         style="background:var(--fs-surface2);border:1px solid var(--fs-border2);color:var(--fs-muted);padding:4px 10px;border-radius:5px;font-size:10px;text-decoration:none;">→</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

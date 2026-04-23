@@ -1,0 +1,12 @@
+{% if messages %}
+  {% for message in messages %}
+    <div class="
+      {% if message.tags == 'success' %}msg-success
+      {% elif message.tags == 'error' %}msg-error
+      {% elif message.tags == 'warning' %}msg-warning
+      {% else %}msg-info{% endif %}
+    ">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}

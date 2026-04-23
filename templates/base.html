@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ForenScope{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    :root {
+      --fs-bg: #0f1117;
+      --fs-surface: #1a1d27;
+      --fs-surface2: #222536;
+      --fs-border: rgba(255,255,255,0.08);
+      --fs-border2: rgba(255,255,255,0.14);
+      --fs-text: #e8eaf0;
+      --fs-muted: #8b90a0;
+      --fs-accent: #4f8ef7;
+      --fs-green: #22c55e;
+      --fs-yellow: #f59e0b;
+      --fs-red: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--fs-bg);
+      color: var(--fs-text);
+      font-family: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+    }
+    /* Sidebar */
+    .fs-sidebar {
+      width: 200px;
+      background: var(--fs-surface);
+      border-right: 1px solid var(--fs-border);
+      min-height: 100vh;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+    .fs-brand {
+      padding: 18px 20px 16px;
+      border-bottom: 1px solid var(--fs-border);
+    }
+    .fs-brand-name { font-size: 13px; font-weight: 600; color: var(--fs-text); letter-spacing: 0.05em; }
+    .fs-brand-sub { font-size: 9px; color: var(--fs-muted); margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .fs-nav { padding: 12px 0; flex: 1; }
+    .fs-nav-section {
+      font-size: 9px; color: var(--fs-muted);
+      padding: 14px 20px 6px;
+      letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6;
+    }
+    .fs-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 20px;
+      font-size: 12px; color: var(--fs-muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .fs-nav-item:hover { color: var(--fs-text); background: var(--fs-surface2); }
+    .fs-nav-item.active { color: var(--fs-accent); border-left-color: var(--fs-accent); background: rgba(79,142,247,0.07); }
+    .fs-nav-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .fs-user-bar {
+      padding: 14px 20px;
+      border-top: 1px solid var(--fs-border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .fs-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--fs-accent), #6c63ff);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .fs-user-name { font-size: 11px; color: var(--fs-text); flex: 1; }
+    .fs-logout-btn {
+      background: none; border: none; color: var(--fs-muted);
+      font-size: 10px; cursor: pointer; font-family: inherit;
+      padding: 0;
+    }
+    .fs-logout-btn:hover { color: var(--fs-red); }
+    /* Main */
+    .fs-main {
+      margin-left: 200px;
+      padding: 24px 28px;
+      flex: 1;
+      min-height: 100vh;
+    }
+    /* Pill badges */
+    .pill {
+      display: inline-block; font-size: 9px; padding: 2px 8px;
+      border-radius: 20px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .pill-new    { background: rgba(79,142,247,0.12); color: #7eb3fa; border: 1px solid rgba(79,142,247,0.2); }
+    .pill-inv    { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+    .pill-part   { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .pill-prog   { background: rgba(6,182,212,0.12);  color: #22d3ee; border: 1px solid rgba(6,182,212,0.2); }
+    .pill-res    { background: rgba(34,197,94,0.12);  color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+    .pill-cls    { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.15); }
+    .pill-low    { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.15); }
+    .pill-normal { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.15); }
+    .pill-high   { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .pill-crit   { background: rgba(239,68,68,0.2);   color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    /* Panel */
+    .fs-panel {
+      background: var(--fs-surface);
+      border: 1px solid var(--fs-border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .fs-panel-title {
+      font-size: 9px; color: var(--fs-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 12px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--fs-border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    /* Table */
+    .fs-table { width: 100%; border-collapse: collapse; }
+    .fs-table th {
+      font-size: 9px; color: var(--fs-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0 8px 10px 0; text-align: left;
+      border-bottom: 1px solid var(--fs-border);
+      font-weight: 500;
+    }
+    .fs-table td {
+      padding: 10px 8px 10px 0;
+      border-bottom: 1px solid var(--fs-border);
+      font-size: 11px; color: var(--fs-text);
+      vertical-align: middle;
+    }
+    .fs-table tr:last-child td { border-bottom: none; }
+    .fs-table tr:hover td { background: rgba(255,255,255,0.02); }
+    /* Code chip */
+    .fs-code {
+      font-size: 10px; color: var(--fs-accent);
+      background: rgba(79,142,247,0.1);
+      padding: 2px 7px; border-radius: 4px;
+      text-decoration: none;
+    }
+    .fs-code:hover { background: rgba(79,142,247,0.2); }
+    /* Buttons */
+    .btn-primary { background: var(--fs-accent); color: #fff; border: none; padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
+    .btn-ghost { background: var(--fs-surface2); color: var(--fs-muted); border: 1px solid var(--fs-border2); padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
+    .btn-warn { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
+    /* Form inputs */
+    .fs-input {
+      background: var(--fs-surface);
+      border: 1px solid var(--fs-border2);
+      color: var(--fs-text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: inherit;
+      width: 100%;
+    }
+    .fs-input:focus { outline: none; border-color: var(--fs-accent); }
+    .fs-select {
+      background: var(--fs-surface);
+      border: 1px solid var(--fs-border2);
+      color: var(--fs-muted);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: inherit;
+    }
+    .fs-textarea {
+      background: var(--fs-surface2);
+      border: 1px solid var(--fs-border2);
+      color: var(--fs-text);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: inherit;
+      width: 100%;
+      resize: vertical;
+    }
+    /* Messages */
+    .msg-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #4ade80; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+    .msg-error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.2);  color: #f87171; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+    .msg-warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #fbbf24; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+    .msg-info    { background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.2); color: #7eb3fa; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% include 'partials/sidebar.html' %}
+
+<div class="fs-main">
+  {% include 'partials/messages.html' %}
+  {% block content %}{% endblock %}
+</div>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

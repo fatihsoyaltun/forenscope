@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ ticket.code }} — ForenScope{% endblock %}
+
+{% block content %}
+<!-- Top Bar -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+  <a href="{% url 'service:ticket_list' %}" style="font-size:10px;color:var(--fs-muted);text-decoration:none;">
+    ← Servis Kayıtlarına Dön
+  </a>
+  <div style="display:flex;gap:8px;">
+    {% if user == ticket.assigned_to or user.groups.filter(name='Admin').exists %}
+    <a href="{% url 'service:ticket_resolve' ticket.code %}" class="btn-warn">Çözümü Gir</a>
+    {% endif %}
+    {% if perms.service.change_serviceticket %}
+    <a href="{% url 'service:ticket_edit' ticket.code %}" class="btn-ghost">Düzenle</a>
+    {% endif %}
+    {% if user.groups.filter(name='Admin').exists and ticket.status == 'resolved' %}
+    <a href="{% url 'knowledge:article_create' %}?from_ticket={{ ticket.code }}" class="btn-primary">Bilgi Bankasına Ekle</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Ticket Header -->
+<div class="fs-panel" style="margin-bottom:12px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+    <span class="fs-code" style="font-size:11px;padding:3px 10px;">{{ ticket.code }}</span>
+    <span class="pill pill-{{ ticket.status }}">{{ ticket.get_status_display }}</span>
+    <span class="pill pill-{{ ticket.priority }}">{{ ticket.get_priority_display }} Öncelik</span>
+  </div>
+  <div style="font-size:15px;font-weight:600;margin-bottom:10px;">{{ ticket.subject }}</div>
+  <div style="display:flex;gap:18px;flex-wrap:wrap;">
+    <div style="font-size:10px;color:var(--fs-muted);">Cihaz: <span style="color:var(--fs-text);">{{ ticket.device.serial_no }}</span></div>
+    <div style="font-size:10px;color:var(--fs-muted);">Müşteri: <span style="color:var(--fs-text);">{{ ticket.device.customer_name|default:"—" }}</span></div>
+    <div style="font-size:10px;color:var(--fs-muted);">Kategori: <span style="color:var(--fs-text);">{{ ticket.fault_category.name|default:"—" }}</span></div>
+    <div style="font-size:10px;color:var(--fs-muted);">Belirti: <span style="color:var(--fs-text);">{{ ticket.symptom.name|default:"—" }}</span></div>
+    <div style="font-size:10px;color:var(--fs-muted);">Oluşturan: <span style="color:var(--fs-text);">{{ ticket.created_by }} &middot; {{ ticket.created_at|date:"d.m.Y H:i" }}</span></div>
+    <div style="font-size:10px;color:var(--fs-muted);">Atanan: <span style="color:var(--fs-text);">{{ ticket.assigned_to|default:"—" }}</span></div>
+  </div>
+</div>
+
+{% if ticket.status == 'investigating' or ticket.status == 'new' %}
+{% if user == ticket.assigned_to or user.groups.filter(name='Admin').exists %}
+<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+  <div style="font-size:11px;color:#fbbf24;">Bu ticket çözüme hazır mı? Çözüm bilgilerini girerek kapatabilirsin.</div>
+  <a href="{% url 'service:ticket_resolve' ticket.code %}" class="btn-warn" style="flex-shrink:0;margin-left:16px;">Çözümü Gir →</a>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Two Column Layout -->
+<div style="display:grid;grid-template-columns:1fr 280px;gap:12px;">
+
+  <!-- Left Column -->
+  <div>
+    <!-- Problem Description -->
+    <div class="fs-panel" style="margin-bottom:12px;">
+      <div class="fs-panel-title">Sorun Açıklaması</div>
+      <div style="background:var(--fs-surface2);border:1px solid var(--fs-border);border-radius:6px;padding:12px 14px;font-size:11px;color:var(--fs-muted);line-height:1.7;margin-bottom:14px;">
+        {{ ticket.description }}
+      </div>
+
+      <div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px;">
+        <div style="font-size:10px;color:var(--fs-muted);">Kök Neden</div>
+        <div style="font-size:11px;color:{% if ticket.root_cause %}var(--fs-text){% else %}var(--fs-muted){% endif %};">
+          {% if ticket.root_cause %}{{ ticket.root_cause }}{% else %}<em>Henüz girilmedi</em>{% endif %}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px;">
+        <div style="font-size:10px;color:var(--fs-muted);">Çözüm Adımları</div>
+        <div style="font-size:11px;color:{% if ticket.resolution_steps %}var(--fs-text){% else %}var(--fs-muted){% endif %};">
+          {% if ticket.resolution_steps %}{{ ticket.resolution_steps|linebreaksbr }}{% else %}<em>Henüz girilmedi</em>{% endif %}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px;">
+        <div style="font-size:10px;color:var(--fs-muted);">Kullanılan Parça</div>
+        <div style="font-size:11px;">
+          {% for part in ticket.parts_used.all %}
+          <span style="background:rgba(79,142,247,0.1);color:var(--fs-accent);font-size:10px;padding:2px 8px;border-radius:4px;margin-right:4px;">{{ part.name }}</span>
+          {% empty %}<span style="color:var(--fs-muted);">—</span>{% endfor %}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr;gap:8px;">
+        <div style="font-size:10px;color:var(--fs-muted);">Doğrulama</div>
+        <div style="font-size:11px;">
+          {% if ticket.verification_passed is None %}<span style="color:var(--fs-muted);">Bekliyor</span>
+          {% elif ticket.verification_passed %}<span style="color:var(--fs-green);">✓ Geçti</span>
+          {% else %}<span style="color:var(--fs-red);">✗ Geçmedi</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="fs-panel">
+      <div class="fs-panel-title">Yorumlar ({{ ticket.comments.count }})</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+        {% for comment in ticket.comments.all %}
+        {% if not comment.is_internal or user.groups.filter(name__in=['Admin','Technician']).exists %}
+        <div style="background:var(--fs-surface2);border:1px solid var(--fs-border);border-radius:8px;padding:10px 14px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#4f8ef7,#6c63ff);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;">
+              {{ comment.author.get_full_name|default:comment.author.username|slice:":2"|upper }}
+            </div>
+            <span style="font-size:10px;font-weight:600;">{{ comment.author.get_full_name|default:comment.author.username }}</span>
+            {% if comment.is_internal %}<span style="font-size:9px;color:var(--fs-yellow);">dahili</span>{% endif %}
+            <span style="font-size:9px;color:var(--fs-muted);margin-left:auto;">{{ comment.created_at|date:"d.m · H:i" }}</span>
+          </div>
+          <div style="font-size:11px;color:var(--fs-muted);line-height:1.6;">{{ comment.body }}</div>
+        </div>
+        {% endif %}
+        {% empty %}
+        <div style="color:var(--fs-muted);font-size:11px;">Henüz yorum yok</div>
+        {% endfor %}
+      </div>
+
+      <!-- Comment Form -->
+      <form method="post" action="{% url 'service:ticket_comment' ticket.code %}"
+            hx-post="{% url 'service:ticket_comment' ticket.code %}"
+            hx-target=".fs-panel:last-of-type"
+            hx-swap="outerHTML">
+        {% csrf_token %}
+        <textarea name="body" class="fs-textarea" placeholder="Yorum ekle..." rows="3" style="margin-bottom:8px;"></textarea>
+        {% if user.groups.filter(name__in=['Admin','Technician']).exists %}
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <input type="checkbox" name="is_internal" id="is_internal">
+          <label for="is_internal" style="font-size:10px;color:var(--fs-muted);">Dahili yorum (sadece teknisyen/admin görsün)</label>
+        </div>
+        {% endif %}
+        <button type="submit" class="btn-primary" style="font-size:10px;padding:6px 12px;">Yorum Ekle</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div>
+    <!-- Device Info -->
+    <div class="fs-panel" style="margin-bottom:12px;">
+      <div class="fs-panel-title">Cihaz Bilgisi</div>
+      <div style="display:grid;grid-template-columns:80px 1fr;gap:7px;font-size:11px;">
+        <div style="color:var(--fs-muted);">Seri No</div><div>{{ ticket.device.serial_no }}</div>
+        <div style="color:var(--fs-muted);">Aile</div><div>{{ ticket.device.get_family_display }}</div>
+        <div style="color:var(--fs-muted);">Model</div><div>{{ ticket.device.model_name|default:"—" }}</div>
+        <div style="color:var(--fs-muted);">Müşteri</div><div>{{ ticket.device.customer_name|default:"—" }}</div>
+        <div style="color:var(--fs-muted);">Toplam Kayıt</div>
+        <div style="color:var(--fs-accent);font-weight:600;">{{ device_tickets.count }} kayıt</div>
+      </div>
+    </div>
+
+    <!-- Device History -->
+    <div class="fs-panel" style="margin-bottom:12px;">
+      <div class="fs-panel-title">Bu Cihazın Geçmişi</div>
+      {% for t in device_tickets %}
+      {% if t.pk != ticket.pk %}
+      <div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--fs-border);">
+        <div style="width:6px;height:6px;border-radius:50%;background:{% if t.status == 'closed' %}var(--fs-green){% elif t.status == 'resolved' %}var(--fs-green){% else %}var(--fs-yellow){% endif %};flex-shrink:0;margin-top:4px;"></div>
+        <div style="font-size:10px;line-height:1.5;">
+          <a href="{% url 'service:ticket_detail' t.code %}" class="fs-code" style="font-size:9px;">{{ t.code }}</a>
+          <span style="color:var(--fs-muted);"> · {{ t.subject|truncatechars:25 }} · {{ t.created_at|date:"d.m.y" }}</span>
+        </div>
+      </div>
+      {% endif %}
+      {% empty %}
+      <div style="color:var(--fs-muted);font-size:10px;">İlk kayıt</div>
+      {% endfor %}
+    </div>
+
+    <!-- Attachments -->
+    <div class="fs-panel">
+      <div class="fs-panel-title">
+        Ekler ({{ ticket.attachments.count }})
+        {% if perms.service.add_attachment %}
+        <span>
+          <label for="file-upload" style="color:var(--fs-accent);font-size:10px;cursor:pointer;">+ Dosya Ekle</label>
+        </span>
+        {% endif %}
+      </div>
+
+      {% for att in ticket.attachments.all %}
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--fs-border);">
+        <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;
+          {% if att.kind == 'video' %}background:rgba(239,68,68,0.15);color:#f87171;
+          {% elif att.kind == 'photo' %}background:rgba(34,197,94,0.15);color:#4ade80;
+          {% elif att.kind == 'pdf' %}background:rgba(239,68,68,0.15);color:#f87171;
+          {% else %}background:rgba(148,163,184,0.1);color:#94a3b8;{% endif %}">
+          {{ att.kind|upper|slice:":3" }}
+        </div>
+        <div style="flex:1;overflow:hidden;">
+          <div style="font-size:10px;color:var(--fs-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ att.original_name }}</div>
+          <div style="font-size:9px;color:var(--fs-muted);">
+            {{ att.size_bytes|filesizeformat }} &middot; {{ att.uploaded_by.get_full_name|default:att.uploaded_by.username }}
+          </div>
+        </div>
+        <a href="{% url 'service:attachment_download' att.pk %}"
+           style="font-size:9px;color:var(--fs-accent);text-decoration:none;">↓</a>
+      </div>
+      {% empty %}
+      <div style="color:var(--fs-muted);font-size:10px;">Ek dosya yok</div>
+      {% endfor %}
+
+      {% if perms.service.add_attachment %}
+      <form method="post" action="{% url 'service:attachment_upload' ticket.code %}"
+            enctype="multipart/form-data"
+            hx-post="{% url 'service:attachment_upload' ticket.code %}"
+            hx-target=".fs-panel:last-of-type"
+            hx-swap="outerHTML"
+            style="margin-top:12px;">
+        {% csrf_token %}
+        <input type="file" id="file-upload" name="file" style="display:none;"
+               onchange="this.form.submit()">
+        <select name="kind" class="fs-select" style="width:100%;margin-bottom:8px;">
+          <option value="video">Video</option>
+          <option value="photo">Fotoğraf</option>
+          <option value="pdf">PDF</option>
+          <option value="log">Log</option>
+        </select>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Audit Log (Admin only) -->
+{% if user.groups.filter(name='Admin').exists %}
+<div class="fs-panel" style="margin-top:12px;">
+  <div class="fs-panel-title">Değişiklik Geçmişi</div>
+  {% for log in audit_logs %}
+  <div style="display:flex;gap:12px;padding:7px 0;border-bottom:1px solid var(--fs-border);font-size:10px;">
+    <div style="color:var(--fs-muted);flex-shrink:0;">{{ log.timestamp|date:"d.m.Y H:i" }}</div>
+    <div style="color:var(--fs-muted);flex-shrink:0;">{{ log.actor }}</div>
+    <div style="color:var(--fs-text);">{{ log.get_action_display }} — {{ log.changes_str|truncatechars:80 }}</div>
+  </div>
+  {% empty %}
+  <div style="color:var(--fs-muted);font-size:10px;">Log kaydı yok</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

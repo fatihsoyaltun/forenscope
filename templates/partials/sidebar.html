@@ -1,0 +1,55 @@
+<aside class="fs-sidebar">
+  <div class="fs-brand">
+    <div class="fs-brand-name">ForenScope</div>
+    <div class="fs-brand-sub">Service Intelligence</div>
+  </div>
+
+  <nav class="fs-nav">
+    <div class="fs-nav-section">Ana</div>
+    <a href="{% url 'core:dashboard' %}"
+       class="fs-nav-item {% if request.resolver_match.namespace == 'core' %}active{% endif %}">
+      <span class="fs-nav-dot"></span>Dashboard
+    </a>
+    <a href="{% url 'service:ticket_list' %}"
+       class="fs-nav-item {% if request.resolver_match.namespace == 'service' %}active{% endif %}">
+      <span class="fs-nav-dot"></span>Servis Kayıtları
+    </a>
+
+    <div class="fs-nav-section">Bilgi</div>
+    <a href="{% url 'knowledge:article_list' %}"
+       class="fs-nav-item {% if request.resolver_match.namespace == 'knowledge' %}active{% endif %}">
+      <span class="fs-nav-dot"></span>Bilgi Bankası
+    </a>
+    <a href="{% url 'service:device_list' %}"
+       class="fs-nav-item">
+      <span class="fs-nav-dot"></span>Cihazlar
+    </a>
+    <a href="{% url 'service:part_list' %}"
+       class="fs-nav-item">
+      <span class="fs-nav-dot"></span>Parçalar
+    </a>
+
+    {% if user.is_staff %}
+    <div class="fs-nav-section">Yönetim</div>
+    <a href="{% url 'admin:index' %}"
+       class="fs-nav-item">
+      <span class="fs-nav-dot"></span>Admin Panel
+    </a>
+    <a href="{% url 'service:audit_log' %}"
+       class="fs-nav-item">
+      <span class="fs-nav-dot"></span>Audit Log
+    </a>
+    {% endif %}
+  </nav>
+
+  <div class="fs-user-bar">
+    <div class="fs-avatar">
+      {{ user.get_full_name|default:user.username|slice:":2"|upper }}
+    </div>
+    <div class="fs-user-name">{{ user.get_full_name|default:user.username }}</div>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="fs-logout-btn" title="Çıkış">✕</button>
+    </form>
+  </div>
+</aside>

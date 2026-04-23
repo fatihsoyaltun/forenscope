@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giriş — ForenScope</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --fs-bg: #0f1117; --fs-surface: #1a1d27; --fs-border: rgba(255,255,255,0.08);
+      --fs-border2: rgba(255,255,255,0.14); --fs-text: #e8eaf0; --fs-muted: #8b90a0;
+      --fs-accent: #4f8ef7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--fs-bg); color: var(--fs-text);
+      font-family: 'SF Mono','JetBrains Mono','Menlo',monospace;
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    }
+    .login-card {
+      background: var(--fs-surface); border: 1px solid var(--fs-border);
+      border-radius: 12px; padding: 36px 32px; width: 100%; max-width: 380px;
+    }
+    .brand { margin-bottom: 28px; }
+    .brand-name { font-size: 16px; font-weight: 600; letter-spacing: 0.05em; }
+    .brand-sub { font-size: 10px; color: var(--fs-muted); margin-top: 4px; letter-spacing: 0.08em; text-transform: uppercase; }
+    label { display: block; font-size: 10px; color: var(--fs-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 16px; }
+    input[type="text"], input[type="password"] {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--fs-border2); color: var(--fs-text);
+      padding: 10px 12px; border-radius: 6px;
+      font-size: 12px; font-family: inherit;
+    }
+    input:focus { outline: none; border-color: var(--fs-accent); }
+    .btn-submit {
+      width: 100%; background: var(--fs-accent); color: #fff;
+      border: none; padding: 11px; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      font-family: inherit; margin-top: 22px; letter-spacing: 0.03em;
+    }
+    .btn-submit:hover { opacity: 0.9; }
+    .error-box {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+      color: #f87171; padding: 10px 14px; border-radius: 6px;
+      font-size: 11px; margin-top: 14px;
+    }
+    .divider { height: 1px; background: var(--fs-border); margin: 24px 0; }
+    .footer-text { font-size: 10px; color: var(--fs-muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-name">ForenScope</div>
+      <div class="brand-sub">Service Intelligence — Şirket İçi Erişim</div>
+    </div>
+
+    {% if form.errors %}
+    <div class="error-box">Kullanıcı adı veya şifre hatalı.</div>
+    {% endif %}
+
+    {% if messages %}
+      {% for message in messages %}
+      <div class="error-box" style="{% if 'success' in message.tags %}background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.2);color:#4ade80;{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <label for="id_username">Kullanıcı Adı</label>
+      <input type="text" name="username" id="id_username" autocomplete="username" autofocus>
+      <label for="id_password">Şifre</label>
+      <input type="password" name="password" id="id_password" autocomplete="current-password">
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn-submit">Giriş Yap →</button>
+    </form>
+
+    <div class="divider"></div>
+    <div class="footer-text">Yalnızca yetkili personel erişebilir</div>
+  </div>
+</body>
+</html>

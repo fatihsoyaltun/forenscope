@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — ForenScope{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+  <div>
+    <div style="font-size:16px;font-weight:600;">Operasyon Panosu</div>
+    <div style="font-size:11px;color:var(--fs-muted);margin-top:3px;">
+      {% now "j F Y" %} — {% now "l" %}
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="background:rgba(79,142,247,0.15);color:var(--fs-accent);font-size:10px;padding:4px 12px;border-radius:20px;border:1px solid rgba(79,142,247,0.25);">
+      {% if user.groups.all %}{{ user.groups.first.name }}{% else %}Admin{% endif %}
+    </span>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">
+  <div class="fs-panel" style="border-top:2px solid var(--fs-accent);border-radius:10px;">
+    <div style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Toplam Kayıt</div>
+    <div style="font-size:28px;font-weight:700;">{{ total_tickets|default:"0" }}</div>
+    <div style="font-size:10px;color:var(--fs-muted);margin-top:6px;">tüm zamanlar</div>
+  </div>
+  <div class="fs-panel" style="border-top:2px solid var(--fs-yellow);border-radius:10px;">
+    <div style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Açık Kayıt</div>
+    <div style="font-size:28px;font-weight:700;">{{ open_tickets|default:"0" }}</div>
+    <div style="font-size:10px;color:var(--fs-muted);margin-top:6px;">işlemde</div>
+  </div>
+  <div class="fs-panel" style="border-top:2px solid var(--fs-green);border-radius:10px;">
+    <div style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Kapatılan</div>
+    <div style="font-size:28px;font-weight:700;">{{ closed_tickets|default:"0" }}</div>
+    <div style="font-size:10px;color:var(--fs-muted);margin-top:6px;">tamamlandı</div>
+  </div>
+  <div class="fs-panel" style="border-top:2px solid var(--fs-red);border-radius:10px;">
+    <div style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Yüksek Öncelik</div>
+    <div style="font-size:28px;font-weight:700;">{{ critical_tickets|default:"0" }}</div>
+    <div style="font-size:10px;color:var(--fs-red);margin-top:6px;">acil müdahale</div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px;">
+  <div class="fs-panel">
+    <div class="fs-panel-title">Son 7 Gün — Yeni Kayıt</div>
+    <canvas id="barChart" height="90"></canvas>
+  </div>
+  <div class="fs-panel">
+    <div class="fs-panel-title">Durum Dağılımı</div>
+    <canvas id="donutChart" height="130"></canvas>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px;">
+      {% for item in status_data %}
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:
+          {% if item.status == 'new' %}#4f8ef7
+          {% elif item.status == 'investigating' %}#f59e0b
+          {% elif item.status == 'waiting_part' %}#ef4444
+          {% elif item.status == 'resolved' %}#22c55e
+          {% else %}#8b90a0{% endif %};flex-shrink:0;"></div>
+        <span style="color:var(--fs-muted);flex:1;">{{ item.status }}</span>
+        <span style="font-weight:600;">{{ item.count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Row -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+  <div class="fs-panel">
+    <div class="fs-panel-title">
+      Son Kayıtlar
+      <a href="{% url 'service:ticket_list' %}" style="color:var(--fs-accent);font-size:10px;text-decoration:none;text-transform:none;letter-spacing:0;">Tümünü Gör →</a>
+    </div>
+    <table class="fs-table">
+      <thead>
+        <tr>
+          <th>Kod</th>
+          <th>Cihaz</th>
+          <th>Konu</th>
+          <th>Öncelik</th>
+          <th>Durum</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in recent_tickets %}
+        <tr>
+          <td><a href="{% url 'service:ticket_detail' ticket.code %}" class="fs-code">{{ ticket.code }}</a></td>
+          <td style="color:var(--fs-muted);font-size:10px;">{{ ticket.device.family }} · {{ ticket.device.serial_no }}</td>
+          <td>{{ ticket.subject|truncatechars:35 }}</td>
+          <td>
+            <span class="pill pill-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
+          </td>
+          <td>
+            <span class="pill pill-{{ ticket.status|slugify }}">{{ ticket.get_status_display }}</span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="color:var(--fs-muted);text-align:center;padding:20px 0;">Henüz kayıt yok</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <div class="fs-panel">
+      <div class="fs-panel-title">En Çok Kullanılan Parçalar</div>
+      {% for part in top_parts %}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--fs-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ part.name }}</div>
+        <div style="flex:2;height:4px;background:var(--fs-surface2);border-radius:2px;overflow:hidden;">
+          <div style="height:100%;border-radius:2px;background:var(--fs-accent);width:{{ part.usage_pct }}%;"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;min-width:20px;text-align:right;">{{ part.usage }}</div>
+      </div>
+      {% empty %}
+      <p style="color:var(--fs-muted);font-size:11px;">Veri yok</p>
+      {% endfor %}
+    </div>
+
+    <div class="fs-panel">
+      <div class="fs-panel-title">Cihaz Ailesi Dağılımı</div>
+      {% for item in family_data %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--fs-border);">
+        <span style="font-size:11px;color:var(--fs-muted);">{{ item.family }}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--fs-accent);">{{ item.ticket_count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const dailyData = {{ daily_data|safe }};
+const statusData = {{ status_data_json|safe }};
+
+// Bar chart
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: dailyData.map(d => d.date),
+    datasets: [{
+      data: dailyData.map(d => d.count),
+      backgroundColor: dailyData.map((d,i) =>
+        i === dailyData.length-1 ? '#22c55e' : 'rgba(79,142,247,0.5)'
+      ),
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b90a0', font: { size: 9 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b90a0', font: { size: 9 }, stepSize: 1 } }
+    }
+  }
+});
+
+// Donut chart
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: statusData.map(d => d.label),
+    datasets: [{
+      data: statusData.map(d => d.count),
+      backgroundColor: ['#4f8ef7','#f59e0b','#ef4444','#22c55e','#8b90a0'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '65%',
+    plugins: { legend: { display: false } }
+  }
+});
+</script>
+{% endblock %}

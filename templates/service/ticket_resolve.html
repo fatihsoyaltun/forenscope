@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Çözümü Gir — {{ ticket.code }} — ForenScope{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div>
+    <a href="{% url 'service:ticket_detail' ticket.code %}" style="font-size:10px;color:var(--fs-muted);text-decoration:none;">← {{ ticket.code }}</a>
+    <div style="font-size:16px;font-weight:600;margin-top:4px;">Çözüm Bilgilerini Gir</div>
+    <div style="font-size:11px;color:var(--fs-muted);margin-top:3px;">{{ ticket.subject }}</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span class="pill pill-{{ ticket.status }}">{{ ticket.get_status_display }}</span>
+    <span class="pill pill-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
+  </div>
+</div>
+
+<!-- Ticket özet -->
+<div class="fs-panel" style="margin-bottom:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+  <div>
+    <div style="font-size:9px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Cihaz</div>
+    <div style="font-size:11px;">{{ ticket.device.serial_no }}</div>
+  </div>
+  <div>
+    <div style="font-size:9px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Aile</div>
+    <div style="font-size:11px;">{{ ticket.device.get_family_display }}</div>
+  </div>
+  <div>
+    <div style="font-size:9px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Kategori</div>
+    <div style="font-size:11px;">{{ ticket.fault_category.name|default:"—" }}</div>
+  </div>
+  <div>
+    <div style="font-size:9px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Belirti</div>
+    <div style="font-size:11px;">{{ ticket.symptom.name|default:"—" }}</div>
+  </div>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+    <div>
+      <div class="fs-panel" style="margin-bottom:14px;">
+        <div class="fs-panel-title">Tanı ve Çözüm</div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Kök Neden <span style="color:var(--fs-red);">*</span>
+          </label>
+          <textarea name="root_cause" class="fs-textarea" rows="3"
+                    placeholder="Arızanın gerçek nedeni nedir? Mekanik sıkışma, PCB arızası, yazılım hatası...">{{ form.root_cause.value|default:'' }}</textarea>
+          {% if form.root_cause.errors %}
+          <div style="color:var(--fs-red);font-size:10px;margin-top:4px;">{{ form.root_cause.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Çözüm Adımları <span style="color:var(--fs-red);">*</span>
+          </label>
+          <textarea name="resolution_steps" class="fs-textarea" rows="6"
+                    placeholder="1. Adım: ...&#10;2. Adım: ...&#10;3. Adım: ...&#10;&#10;Her adımı ayrı satıra yaz. Bu bilgi bilgi bankasına aktarılacak.">{{ form.resolution_steps.value|default:'' }}</textarea>
+          {% if form.resolution_steps.errors %}
+          <div style="color:var(--fs-red);font-size:10px;margin-top:4px;">{{ form.resolution_steps.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div>
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Doğrulama Notları
+          </label>
+          <textarea name="verification_notes" class="fs-textarea" rows="2"
+                    placeholder="Test nasıl yapıldı, sonuç neydi...">{{ form.verification_notes.value|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="fs-panel" style="margin-bottom:14px;">
+        <div class="fs-panel-title">Kullanılan Parçalar</div>
+        <div style="max-height:200px;overflow-y:auto;margin-bottom:10px;">
+          {% for part in parts %}
+          <label style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--fs-border);cursor:pointer;">
+            <input type="checkbox" name="parts_used" value="{{ part.id }}"
+                   {% if part.id in selected_parts %}checked{% endif %}
+                   style="accent-color:var(--fs-accent);">
+            <div>
+              <div style="font-size:11px;color:var(--fs-text);">{{ part.name }}</div>
+              <div style="font-size:9px;color:var(--fs-muted);">{{ part.code }}</div>
+            </div>
+          </label>
+          {% empty %}
+          <div style="color:var(--fs-muted);font-size:11px;">Parça tanımlı değil</div>
+          {% endfor %}
+        </div>
+        <div style="font-size:10px;color:var(--fs-muted);">Stokta olmayan parça için admin'e bildir</div>
+      </div>
+
+      <div class="fs-panel" style="margin-bottom:14px;">
+        <div class="fs-panel-title">Doğrulama ve Durum</div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:10px;">
+            Doğrulama Testi <span style="color:var(--fs-red);">*</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;">
+            <input type="radio" name="verification_passed" value="true"
+                   {% if form.verification_passed.value == 'true' %}checked{% endif %}
+                   style="accent-color:var(--fs-green);">
+            <span style="font-size:12px;color:var(--fs-green);">✓ Doğrulama testi geçti — sorun çözüldü</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <input type="radio" name="verification_passed" value="false"
+                   {% if form.verification_passed.value == 'false' %}checked{% endif %}
+                   style="accent-color:var(--fs-red);">
+            <span style="font-size:12px;color:var(--fs-red);">✗ Doğrulama testi geçmedi — devam ediyor</span>
+          </label>
+        </div>
+
+        <div>
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Ticket Durumu
+          </label>
+          <select name="status" class="fs-select" style="width:100%;">
+            <option value="investigating" {% if ticket.status == 'investigating' %}selected{% endif %}>İnceleniyor</option>
+            <option value="waiting_part"  {% if ticket.status == 'waiting_part' %}selected{% endif %}>Parça Bekleniyor</option>
+            <option value="in_progress"   {% if ticket.status == 'in_progress' %}selected{% endif %}>İşlemde</option>
+            <option value="resolved"                                                               >Çözüldü</option>
+            <option value="closed"                                                                 >Kapatıldı</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:rgba(79,142,247,0.06);border:1px solid rgba(79,142,247,0.15);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:11px;color:var(--fs-muted);">
+    Çözüm kaydedildikten sonra admin bu ticket'ı <strong style="color:var(--fs-accent);">Bilgi Bankasına</strong> ekleyebilir.
+    Doldurulan kök neden ve çözüm adımları makaleye otomatik aktarılır.
+  </div>
+
+  <div style="display:flex;gap:10px;">
+    <button type="submit" class="btn-primary">Çözümü Kaydet</button>
+    <a href="{% url 'service:ticket_detail' ticket.code %}" class="btn-ghost">İptal</a>
+  </div>
+</form>
+{% endblock %}
