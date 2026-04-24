@@ -154,6 +154,7 @@ UNFOLD = {
     "SITE_URL": "/",
     "SITE_ICON": None,
     "SITE_SYMBOL": "settings",
+    "THEME": "dark",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
     "STYLES": [
