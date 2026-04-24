@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if action == 'edit' %}Makale Düzenle{% else %}Yeni Makale{% endif %} — ForenScope{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div>
+    <div style="font-size:16px;font-weight:600;">
+      {% if action == 'edit' %}Makale Düzenle{% else %}Yeni Makale{% endif %}
+    </div>
+    <div style="font-size:11px;color:var(--fs-muted);margin-top:3px;">
+      {% if action == 'edit' %}v{{ form.instance.version }} — {{ form.instance.title }}{% else %}Tüm zorunlu alanları doldurun{% endif %}
+    </div>
+  </div>
+  <a href="{% url 'knowledge:article_list' %}" class="btn-ghost">← Listeye Dön</a>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+    <!-- Left: Konu ve Sınıflandırma -->
+    <div>
+      <div class="fs-panel" style="margin-bottom:14px;">
+        <div class="fs-panel-title">Makale Bilgileri</div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Başlık <span style="color:var(--fs-red);">*</span>
+          </label>
+          <input type="text" name="title" class="fs-input"
+                 value="{{ form.title.value|default:'' }}"
+                 placeholder="Kısa ve açıklayıcı başlık">
+          {% if form.title.errors %}<div style="color:var(--fs-red);font-size:10px;margin-top:4px;">{{ form.title.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Özet <span style="color:var(--fs-red);">*</span>
+          </label>
+          <textarea name="summary" class="fs-textarea" rows="3"
+                    placeholder="Sorun ve çözümü 1-2 cümlede özetle">{{ form.summary.value|default:'' }}</textarea>
+          {% if form.summary.errors %}<div style="color:var(--fs-red);font-size:10px;margin-top:4px;">{{ form.summary.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Etiketler
+          </label>
+          <input type="text" name="tags" class="fs-input"
+                 value="{{ form.tags.value|default:'' }}"
+                 placeholder="filtre optik lens (boşlukla ayır)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Sınıflandırma -->
+    <div>
+      <div class="fs-panel" style="margin-bottom:14px;">
+        <div class="fs-panel-title">Sınıflandırma</div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Cihaz Ailesi <span style="color:var(--fs-red);">*</span>
+          </label>
+          <select name="device_family" class="fs-select" style="width:100%;">
+            <option value="">— Seçin —</option>
+            <option value="4K"      {% if form.device_family.value == '4K' %}selected{% endif %}>4K Kamera</option>
+            <option value="8K"      {% if form.device_family.value == '8K' %}selected{% endif %}>8K Kamera</option>
+            <option value="TZOOM"   {% if form.device_family.value == 'TZOOM' %}selected{% endif %}>T-Zoom</option>
+            <option value="SSFORCE" {% if form.device_family.value == 'SSFORCE' %}selected{% endif %}>SuperSpectral Force</option>
+            <option value="OTHER"   {% if form.device_family.value == 'OTHER' %}selected{% endif %}>Diğer</option>
+          </select>
+          {% if form.device_family.errors %}<div style="color:var(--fs-red);font-size:10px;margin-top:4px;">{{ form.device_family.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Arıza Kategorisi <span style="color:var(--fs-red);">*</span>
+          </label>
+          <select name="fault_category" class="fs-select" style="width:100%;"
+                  hx-get="{% url 'service:symptom_by_category' 0 %}"
+                  hx-trigger="change"
+                  hx-target="#symptom-select"
+                  hx-include="[name='fault_category']">
+            <option value="">— Seçin —</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}"
+              {% if form.fault_category.value == cat.id|stringformat:"s" %}selected{% endif %}>
+              {{ cat.name }}
+            </option>
+            {% endfor %}
+          </select>
+          {% if form.fault_category.errors %}<div style="color:var(--fs-red);font-size:10px;margin-top:4px;">{{ form.fault_category.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Belirti
+          </label>
+          <div id="symptom-select">
+            <select name="symptom" class="fs-select" style="width:100%;">
+              <option value="">— Önce kategori seçin —</option>
+              {% if form.symptom.value %}
+              {% for s in form.fields.symptom.queryset %}
+              <option value="{{ s.id }}" {% if form.symptom.value == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+              {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom:4px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Kaynak Ticket
+          </label>
+          <input type="text" name="source_ticket" class="fs-input"
+                 value="{{ form.source_ticket.value|default:'' }}"
+                 placeholder="Ticket ID (opsiyonel)">
+        </div>
+
+        {% if is_admin and form.status %}
+        <div style="margin-top:12px;">
+          <label style="font-size:10px;color:var(--fs-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">
+            Durum
+          </label>
+          <select name="status" class="fs-select" style="width:100%;">
+            <option value="draft"     {% if form.status.value == 'draft' %}selected{% endif %}>Taslak</option>
+            <option value="review"    {% if form.status.value == 'review' %}selected{% endif %}>İncelemede</option>
+            <option value="published" {% if form.status.value == 'published' %}selected{% endif %}>Yayında</option>
+            <option value="archived"  {% if form.status.value == 'archived' %}selected{% endif %}>Arşiv</option>
+          </select>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Çözüm Rehberi -->
+  <div class="fs-panel" style="margin-bottom:14px;">
+    <div class="fs-panel-title">Çözüm Rehberi <span style="color:var(--fs-red);">*</span></div>
+    <textarea name="solution_body" class="fs-textarea" rows="10"
+              placeholder="Adım adım çözüm açıklaması. Her adımı yeni satıra yazın.&#10;&#10;1. Cihazı servise al ve ön incelemeyi yap&#10;2. ...">{{ form.solution_body.value|default:'' }}</textarea>
+    {% if form.solution_body.errors %}<div style="color:var(--fs-red);font-size:10px;margin-top:4px;">{{ form.solution_body.errors.0 }}</div>{% endif %}
+  </div>
+
+  <!-- Doğrulama Listesi -->
+  <div class="fs-panel" style="margin-bottom:20px;">
+    <div class="fs-panel-title">Doğrulama Kontrol Listesi</div>
+    <div style="font-size:10px;color:var(--fs-muted);margin-bottom:8px;">Her satır bir madde. Teknisyen tarafından işaretlenir.</div>
+    <textarea name="verification_checklist" class="fs-textarea" rows="5"
+              placeholder="Görüntü kalitesi test edildi&#10;Kayıt fonksiyonu doğrulandı&#10;Firmware sürümü güncellendi">{{ form.verification_checklist.value|default:'' }}</textarea>
+  </div>
+
+  <div style="display:flex;gap:10px;">
+    <button type="submit" class="btn-primary">
+      {% if action == 'edit' %}Kaydet (v{{ form.instance.version|add:1 }}){% else %}Oluştur{% endif %}
+    </button>
+    <a href="{% url 'knowledge:article_list' %}" class="btn-ghost">İptal</a>
+  </div>
+</form>
+{% endblock %}

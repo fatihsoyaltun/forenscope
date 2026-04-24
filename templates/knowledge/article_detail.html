@@ -8,7 +8,7 @@
     ← Bilgi Bankasına Dön
   </a>
   <div style="display:flex;gap:8px;">
-    {% if user.groups.filter(name='Admin').exists %}
+    {% if is_admin %}
       {% if article.status == 'draft' or article.status == 'review' %}
       <form method="post" action="{% url 'knowledge:article_approve' article.slug %}">
         {% csrf_token %}
@@ -20,7 +20,7 @@
         {% csrf_token %}
         <button type="submit" class="btn-ghost" style="color:var(--fs-muted);">Arşivle</button>
       </form>
-    {% elif user.groups.filter(name='Technician').exists %}
+    {% elif is_technician %}
       <a href="{% url 'service:ticket_create' %}?note=Makale+düzeltme+talebi:+{{ article.slug }}"
          class="btn-ghost" style="font-size:10px;">Düzeltme Talebi Aç</a>
     {% endif %}
