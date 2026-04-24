@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import Q
 from django.http import HttpResponse, Http404, FileResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -35,17 +36,28 @@ class ArticleListView(LoginRequiredMixin, ListView):
         q = self.request.GET.get('q', '').strip()
         family = self.request.GET.get('family', '')
         category = self.request.GET.get('category', '')
+
         if q:
-            qs = qs.filter(
-                Q(title__icontains=q) | Q(summary__icontains=q) |
-                Q(solution_body__icontains=q) | Q(tags__icontains=q) |
-                Q(symptom__name__icontains=q)
-            )
+            try:
+                search_query = SearchQuery(q, config='turkish')
+                qs = (
+                    qs.filter(search_vector=search_query)
+                    .annotate(rank=SearchRank('search_vector', search_query))
+                    .order_by('-rank')
+                )
+            except Exception:
+                qs = qs.filter(
+                    Q(title__icontains=q) | Q(summary__icontains=q) |
+                    Q(solution_body__icontains=q) | Q(tags__icontains=q)
+                ).order_by('-updated_at')
+        else:
+            qs = qs.order_by('-updated_at')
+
         if family:
             qs = qs.filter(device_family=family)
         if category:
             qs = qs.filter(fault_category_id=category)
-        return qs.order_by('-updated_at')
+        return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

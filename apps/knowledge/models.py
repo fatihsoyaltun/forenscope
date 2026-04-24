@@ -9,6 +9,9 @@ from django.utils.text import slugify
 from auditlog.registry import auditlog
 from simple_history.models import HistoricalRecords
 
+from django.contrib.postgres.search import SearchVector, SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
+
 from apps.service.models import DEVICE_FAMILY, FaultCategory, Symptom, ServiceTicket
 
 
@@ -70,6 +73,8 @@ class KnowledgeArticle(models.Model):
     )
     approved_at = models.DateTimeField(null=True, blank=True, verbose_name='Onay Zamanı')
 
+    search_vector = SearchVectorField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Oluşturulma')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Güncelleme')
 
@@ -79,6 +84,9 @@ class KnowledgeArticle(models.Model):
         verbose_name = 'Makale'
         verbose_name_plural = 'Makaleler'
         ordering = ['-updated_at']
+        indexes = [
+            GinIndex(fields=['search_vector'], name='knowledge_search_idx'),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -88,6 +96,14 @@ class KnowledgeArticle(models.Model):
                 slug, n = f'{base}-{n}', n + 1
             self.slug = slug
         super().save(*args, **kwargs)
+        KnowledgeArticle.objects.filter(pk=self.pk).update(
+            search_vector=(
+                SearchVector('title', weight='A') +
+                SearchVector('summary', weight='B') +
+                SearchVector('solution_body', weight='C') +
+                SearchVector('tags', weight='B')
+            )
+        )
 
     def get_absolute_url(self):
         return reverse('knowledge:article_detail', kwargs={'slug': self.slug})
