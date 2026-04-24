@@ -1,4 +1,6 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin as UnfoldModelAdmin, TabularInline as UnfoldTabularInline
+
 from .models import (
     FaultCategory, Symptom, Part, Device,
     ServiceTicket, Attachment, TicketComment
@@ -6,42 +8,42 @@ from .models import (
 
 
 @admin.register(FaultCategory)
-class FaultCategoryAdmin(admin.ModelAdmin):
+class FaultCategoryAdmin(UnfoldModelAdmin):
     list_display = ['name', 'is_active']
     list_filter = ['is_active']
     search_fields = ['name']
 
 
 @admin.register(Symptom)
-class SymptomAdmin(admin.ModelAdmin):
+class SymptomAdmin(UnfoldModelAdmin):
     list_display = ['name', 'category', 'is_active']
     list_filter = ['category', 'is_active']
     search_fields = ['name']
 
 
 @admin.register(Part)
-class PartAdmin(admin.ModelAdmin):
+class PartAdmin(UnfoldModelAdmin):
     list_display = ['code', 'name', 'is_active']
     list_filter = ['is_active']
     search_fields = ['code', 'name']
 
 
 @admin.register(Device)
-class DeviceAdmin(admin.ModelAdmin):
+class DeviceAdmin(UnfoldModelAdmin):
     list_display = ['serial_no', 'family', 'model_name', 'customer_name', 'created_at']
     list_filter = ['family']
     search_fields = ['serial_no', 'customer_name', 'model_name']
     readonly_fields = ['created_at', 'updated_at']
 
 
-class AttachmentInline(admin.TabularInline):
+class AttachmentInline(UnfoldTabularInline):
     model = Attachment
     extra = 0
     readonly_fields = ['original_name', 'size_bytes', 'mime_type', 'uploaded_by', 'uploaded_at']
     fields = ['kind', 'title', 'file', 'original_name', 'size_bytes', 'uploaded_by', 'uploaded_at']
 
 
-class CommentInline(admin.TabularInline):
+class CommentInline(UnfoldTabularInline):
     model = TicketComment
     extra = 0
     readonly_fields = ['author', 'created_at']
@@ -49,7 +51,7 @@ class CommentInline(admin.TabularInline):
 
 
 @admin.register(ServiceTicket)
-class ServiceTicketAdmin(admin.ModelAdmin):
+class ServiceTicketAdmin(UnfoldModelAdmin):
     list_display = [
         'code', 'device', 'subject', 'fault_category',
         'priority', 'status', 'assigned_to', 'created_at'

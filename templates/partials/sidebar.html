@@ -11,7 +11,7 @@
       <span class="fs-nav-dot"></span>Dashboard
     </a>
     <a href="{% url 'service:ticket_list' %}"
-       class="fs-nav-item {% if request.resolver_match.namespace == 'service' %}active{% endif %}">
+       class="fs-nav-item {% if request.resolver_match.url_name == 'ticket_list' %}active{% endif %}">
       <span class="fs-nav-dot"></span>Servis Kayıtları
     </a>
 
@@ -21,11 +21,11 @@
       <span class="fs-nav-dot"></span>Bilgi Bankası
     </a>
     <a href="{% url 'service:device_list' %}"
-       class="fs-nav-item">
+       class="fs-nav-item {% if request.resolver_match.url_name == 'device_list' %}active{% endif %}">
       <span class="fs-nav-dot"></span>Cihazlar
     </a>
     <a href="{% url 'service:part_list' %}"
-       class="fs-nav-item">
+       class="fs-nav-item {% if request.resolver_match.url_name == 'part_list' %}active{% endif %}">
       <span class="fs-nav-dot"></span>Parçalar
     </a>
 
@@ -36,7 +36,7 @@
       <span class="fs-nav-dot"></span>Admin Panel
     </a>
     <a href="{% url 'service:audit_log' %}"
-       class="fs-nav-item">
+       class="fs-nav-item {% if request.resolver_match.url_name == 'audit_log' %}active{% endif %}">
       <span class="fs-nav-dot"></span>Audit Log
     </a>
     {% endif %}
