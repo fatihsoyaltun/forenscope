@@ -1,4 +1,8 @@
-import magic
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
 from django import forms
 from django.contrib.auth import get_user_model
 from .models import ServiceTicket, Attachment, TicketComment, Device, FaultCategory, Symptom, Part
@@ -94,10 +98,11 @@ class AttachmentUploadForm(forms.ModelForm):
 
     def clean_file(self):
         f = self.cleaned_data['file']
-        mime = magic.from_buffer(f.read(2048), mime=True)
-        f.seek(0)
-        if mime not in ALLOWED_MIME_TYPES:
-            raise forms.ValidationError(f'İzin verilmeyen dosya tipi: {mime}')
+        if MAGIC_AVAILABLE:
+            mime = magic.from_buffer(f.read(2048), mime=True)
+            f.seek(0)
+            if mime not in ALLOWED_MIME_TYPES:
+                raise forms.ValidationError(f'İzin verilmeyen dosya tipi: {mime}')
         kind = self.data.get('kind', 'photo')
         max_size = MAX_SIZE.get(kind, MAX_SIZE['photo'])
         if f.size > max_size:
