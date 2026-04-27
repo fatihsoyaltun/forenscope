@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView
 from django.views.generic import ListView, CreateView, UpdateView, TemplateView
 from django.contrib.auth import get_user_model
 from django.contrib import messages
@@ -58,6 +59,15 @@ class UserEditView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Kullanıcı güncellendi.')
         return super().form_valid(form)
+
+
+class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    template_name = 'accounts/password_change.html'
+    success_url = reverse_lazy('accounts:profile')
+
+    def form_valid(self, response):
+        messages.success(self.request, 'Şifreniz başarıyla güncellendi.')
+        return super().form_valid(response)
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):

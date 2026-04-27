@@ -50,7 +50,7 @@
     <div class="fs-avatar">
       {{ user.get_full_name|default:user.username|slice:":2"|upper }}
     </div>
-    <div class="fs-user-name">{{ user.get_full_name|default:user.username }}</div>
+    <a href="{% url 'accounts:profile' %}" class="fs-user-name" style="text-decoration:none;color:var(--fs-text);">{{ user.get_full_name|default:user.username }}</a>
     <form method="post" action="{% url 'logout' %}">
       {% csrf_token %}
       <button type="submit" class="fs-logout-btn" title="Çıkış">✕</button>

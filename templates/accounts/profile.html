@@ -16,6 +16,11 @@
     </div>
   </div>
 
+  <div class="fs-panel" style="margin-bottom:14px;">
+    <div class="fs-panel-title">Güvenlik</div>
+    <a href="{% url 'accounts:password_change' %}" class="btn-ghost">Şifre Değiştir</a>
+  </div>
+
   <div class="fs-panel">
     <div class="fs-panel-title">İki Faktörlü Kimlik Doğrulama</div>
     {% if mfa_active %}
