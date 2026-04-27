@@ -35,6 +35,10 @@
        class="fs-nav-item">
       <span class="fs-nav-dot"></span>Admin Panel
     </a>
+    <a href="{% url 'accounts:user_list' %}"
+       class="fs-nav-item {% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_edit' %}active{% endif %}">
+      <span class="fs-nav-dot"></span>Kullanıcılar
+    </a>
     <a href="{% url 'service:audit_log' %}"
        class="fs-nav-item {% if request.resolver_match.url_name == 'audit_log' %}active{% endif %}">
       <span class="fs-nav-dot"></span>Audit Log

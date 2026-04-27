@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Kullanıcılar — ForenScope{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div style="font-size:16px;font-weight:600;">Kullanıcı Yönetimi</div>
+  <a href="{% url 'accounts:user_create' %}" class="btn-primary">+ Yeni Kullanıcı</a>
+</div>
+<div class="fs-panel">
+  <table class="fs-table">
+    <thead><tr>
+      <th>Kullanıcı Adı</th><th>Ad Soyad</th><th>E-posta</th><th>Rol</th><th>Durum</th><th>İşlem</th>
+    </tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td style="font-weight:600;">{{ u.username }}</td>
+        <td>{{ u.get_full_name|default:"—" }}</td>
+        <td style="color:var(--fs-muted);">{{ u.email|default:"—" }}</td>
+        <td>
+          {% for g in u.groups.all %}
+          <span class="pill pill-new">{{ g.name }}</span>
+          {% empty %}<span style="color:var(--fs-muted);">—</span>{% endfor %}
+        </td>
+        <td>
+          {% if u.is_active %}
+          <span class="pill pill-res">Aktif</span>
+          {% else %}
+          <span class="pill pill-cls">Pasif</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'accounts:user_edit' u.pk %}" class="btn-ghost" style="font-size:10px;padding:4px 10px;">Düzenle</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="color:var(--fs-muted);text-align:center;padding:20px 0;">Kullanıcı yok</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
