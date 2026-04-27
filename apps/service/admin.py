@@ -1,5 +1,4 @@
 from django.contrib import admin
-from unfold.admin import ModelAdmin as UnfoldModelAdmin, TabularInline as UnfoldTabularInline
 
 from .models import (
     FaultCategory, Symptom, Part, Device,
@@ -8,42 +7,42 @@ from .models import (
 
 
 @admin.register(FaultCategory)
-class FaultCategoryAdmin(UnfoldModelAdmin):
+class FaultCategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'is_active']
     list_filter = ['is_active']
     search_fields = ['name']
 
 
 @admin.register(Symptom)
-class SymptomAdmin(UnfoldModelAdmin):
+class SymptomAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'is_active']
     list_filter = ['category', 'is_active']
     search_fields = ['name']
 
 
 @admin.register(Part)
-class PartAdmin(UnfoldModelAdmin):
+class PartAdmin(admin.ModelAdmin):
     list_display = ['code', 'name', 'is_active']
     list_filter = ['is_active']
     search_fields = ['code', 'name']
 
 
 @admin.register(Device)
-class DeviceAdmin(UnfoldModelAdmin):
+class DeviceAdmin(admin.ModelAdmin):
     list_display = ['serial_no', 'family', 'model_name', 'customer_name', 'created_at']
     list_filter = ['family']
     search_fields = ['serial_no', 'customer_name', 'model_name']
     readonly_fields = ['created_at', 'updated_at']
 
 
-class AttachmentInline(UnfoldTabularInline):
+class AttachmentInline(admin.TabularInline):
     model = Attachment
     extra = 0
     readonly_fields = ['original_name', 'size_bytes', 'mime_type', 'uploaded_by', 'uploaded_at']
     fields = ['kind', 'title', 'file', 'original_name', 'size_bytes', 'uploaded_by', 'uploaded_at']
 
 
-class CommentInline(UnfoldTabularInline):
+class CommentInline(admin.TabularInline):
     model = TicketComment
     extra = 0
     readonly_fields = ['author', 'created_at']
@@ -51,7 +50,7 @@ class CommentInline(UnfoldTabularInline):
 
 
 @admin.register(ServiceTicket)
-class ServiceTicketAdmin(UnfoldModelAdmin):
+class ServiceTicketAdmin(admin.ModelAdmin):
     list_display = [
         'code', 'device', 'subject', 'fault_category',
         'priority', 'status', 'assigned_to', 'created_at'

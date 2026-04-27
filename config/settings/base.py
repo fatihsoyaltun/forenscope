@@ -1,7 +1,5 @@
 import environ
 from pathlib import Path
-from django.urls import reverse_lazy
-from django.templatetags.static import static
 
 env = environ.Env(
     DJANGO_DEBUG=(bool, False)
@@ -16,8 +14,7 @@ DEBUG = env('DJANGO_DEBUG')
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost'])
 
 DJANGO_APPS = [
-    'unfold',
-    'unfold.contrib.filters',
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -146,85 +143,39 @@ AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = 'accounts/lockout.html'
 AXES_USERNAME_FORM_FIELD = 'auth-username'
 
-# Unfold admin UI
-UNFOLD = {
-    "SITE_TITLE": "ForenScope",
-    "SITE_HEADER": "ForenScope Admin",
-    "SITE_SUBHEADER": "Service Intelligence",
-    "SITE_URL": "/",
-    "SITE_ICON": None,
-    "SITE_SYMBOL": "settings",
-    "THEME": "dark",
-    "SHOW_HISTORY": True,
-    "SHOW_VIEW_ON_SITE": True,
-    "STYLES": [
-        lambda request: static("css/unfold_custom.css"),
-    ],
-    "COLORS": {
-        "primary": {
-            "50": "240 249 255",
-            "100": "224 242 254",
-            "200": "186 230 253",
-            "300": "125 211 252",
-            "400": "56 189 248",
-            "500": "14 165 233",
-            "600": "2 132 199",
-            "700": "3 105 161",
-            "800": "7 89 133",
-            "900": "12 74 110",
-            "950": "8 47 73",
-        },
+JAZZMIN_SETTINGS = {
+    "site_title": "ForenScope",
+    "site_header": "ForenScope Admin",
+    "site_brand": "ForenScope",
+    "welcome_sign": "ForenScope Yönetim Paneli",
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "icons": {
+        "service.serviceticket": "fas fa-ticket-alt",
+        "service.device": "fas fa-camera",
+        "service.part": "fas fa-cogs",
+        "knowledge.knowledgearticle": "fas fa-book",
+        "accounts.customuser": "fas fa-users",
+        "auth.group": "fas fa-users-cog",
     },
-    "SIDEBAR": {
-        "show_search": True,
-        "show_all_applications": True,
-        "navigation": [
-            {
-                "title": "Servis",
-                "items": [
-                    {
-                        "title": "Servis Kayıtları",
-                        "icon": "confirmation_number",
-                        "link": reverse_lazy("admin:service_serviceticket_changelist"),
-                    },
-                    {
-                        "title": "Cihazlar",
-                        "icon": "photo_camera",
-                        "link": reverse_lazy("admin:service_device_changelist"),
-                    },
-                    {
-                        "title": "Parçalar",
-                        "icon": "build",
-                        "link": reverse_lazy("admin:service_part_changelist"),
-                    },
-                ],
-            },
-            {
-                "title": "Bilgi Bankası",
-                "items": [
-                    {
-                        "title": "Makaleler",
-                        "icon": "menu_book",
-                        "link": reverse_lazy("admin:knowledge_knowledgearticle_changelist"),
-                    },
-                ],
-            },
-            {
-                "title": "Yönetim",
-                "items": [
-                    {
-                        "title": "Kullanıcılar",
-                        "icon": "person",
-                        "link": reverse_lazy("admin:accounts_customuser_changelist"),
-                    },
-                    {
-                        "title": "Gruplar",
-                        "icon": "group",
-                        "link": reverse_lazy("admin:auth_group_changelist"),
-                    },
-                ],
-            },
-        ],
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "related_modal_active": True,
+    "use_google_fonts_cdn": False,
+    "show_ui_builder": False,
+    "changeform_format": "horizontal_tabs",
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "theme": "darkly",
+    "dark_mode_theme": "darkly",
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
     },
 }
 
