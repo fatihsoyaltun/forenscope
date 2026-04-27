@@ -14,7 +14,6 @@ DEBUG = env('DJANGO_DEBUG')
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost'])
 
 DJANGO_APPS = [
-    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -142,42 +141,6 @@ AXES_COOLOFF_TIME = 1
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = 'accounts/lockout.html'
 AXES_USERNAME_FORM_FIELD = 'auth-username'
-
-JAZZMIN_SETTINGS = {
-    "site_title": "ForenScope",
-    "site_header": "ForenScope Admin",
-    "site_brand": "ForenScope",
-    "welcome_sign": "ForenScope Yönetim Paneli",
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "icons": {
-        "service.serviceticket": "fas fa-ticket-alt",
-        "service.device": "fas fa-camera",
-        "service.part": "fas fa-cogs",
-        "knowledge.knowledgearticle": "fas fa-book",
-        "accounts.customuser": "fas fa-users",
-        "auth.group": "fas fa-users-cog",
-    },
-    "default_icon_parents": "fas fa-chevron-circle-right",
-    "default_icon_children": "fas fa-circle",
-    "related_modal_active": True,
-    "use_google_fonts_cdn": False,
-    "show_ui_builder": False,
-    "changeform_format": "horizontal_tabs",
-}
-
-JAZZMIN_UI_TWEAKS = {
-    "theme": "darkly",
-    "dark_mode_theme": "darkly",
-    "button_classes": {
-        "primary": "btn-primary",
-        "secondary": "btn-secondary",
-        "info": "btn-info",
-        "warning": "btn-warning",
-        "danger": "btn-danger",
-        "success": "btn-success",
-    },
-}
 
 # Logging
 LOGGING = {
