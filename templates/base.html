@@ -2,7 +2,10 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f1117">
   <title>{% block title %}ForenScope{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
@@ -19,19 +22,20 @@
       --fs-green: #22c55e;
       --fs-yellow: #f59e0b;
       --fs-red: #ef4444;
+      --sidebar-w: 200px;
     }
     * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100vh; }
     body {
       background: var(--fs-bg);
       color: var(--fs-text);
       font-family: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
-      margin: 0;
-      min-height: 100vh;
       display: flex;
     }
-    /* Sidebar */
+
+    /* ── Sidebar ── */
     .fs-sidebar {
-      width: 200px;
+      width: var(--sidebar-w);
       background: var(--fs-surface);
       border-right: 1px solid var(--fs-border);
       min-height: 100vh;
@@ -39,7 +43,8 @@
       top: 0; left: 0; bottom: 0;
       display: flex;
       flex-direction: column;
-      z-index: 100;
+      z-index: 200;
+      transition: transform 0.25s ease;
     }
     .fs-brand {
       padding: 18px 20px 16px;
@@ -47,7 +52,7 @@
     }
     .fs-brand-name { font-size: 13px; font-weight: 600; color: var(--fs-text); letter-spacing: 0.05em; }
     .fs-brand-sub { font-size: 9px; color: var(--fs-muted); margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; }
-    .fs-nav { padding: 12px 0; flex: 1; }
+    .fs-nav { padding: 12px 0; flex: 1; overflow-y: auto; }
     .fs-nav-section {
       font-size: 9px; color: var(--fs-muted);
       padding: 14px 20px 6px;
@@ -55,11 +60,12 @@
     }
     .fs-nav-item {
       display: flex; align-items: center; gap: 10px;
-      padding: 9px 20px;
+      padding: 10px 20px;
       font-size: 12px; color: var(--fs-muted);
       text-decoration: none;
       border-left: 2px solid transparent;
       transition: all 0.15s;
+      min-height: 44px;
     }
     .fs-nav-item:hover { color: var(--fs-text); background: var(--fs-surface2); }
     .fs-nav-item.active { color: var(--fs-accent); border-left-color: var(--fs-accent); background: rgba(79,142,247,0.07); }
@@ -75,26 +81,55 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
-    .fs-user-name { font-size: 11px; color: var(--fs-text); flex: 1; }
+    .fs-user-name { font-size: 11px; color: var(--fs-text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .fs-logout-btn {
       background: none; border: none; color: var(--fs-muted);
-      font-size: 10px; cursor: pointer; font-family: inherit;
-      padding: 0;
+      font-size: 10px; cursor: pointer; font-family: inherit; padding: 4px;
     }
     .fs-logout-btn:hover { color: var(--fs-red); }
-    /* Main */
+
+    /* ── Overlay ── */
+    .fs-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 199;
+    }
+    .fs-overlay.open { display: block; }
+
+    /* ── Top bar (mobile only) ── */
+    .fs-topbar {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 52px;
+      background: var(--fs-surface);
+      border-bottom: 1px solid var(--fs-border);
+      align-items: center;
+      padding: 0 16px;
+      z-index: 198;
+      gap: 12px;
+    }
+    .fs-hamburger {
+      background: none; border: none; color: var(--fs-text);
+      font-size: 20px; cursor: pointer; padding: 4px; line-height: 1;
+      flex-shrink: 0;
+    }
+    .fs-topbar-title {
+      font-size: 13px; font-weight: 600; color: var(--fs-text);
+      letter-spacing: 0.04em; flex: 1;
+    }
+
+    /* ── Main content ── */
     .fs-main {
-      margin-left: 200px;
+      margin-left: var(--sidebar-w);
       padding: 24px 28px;
       flex: 1;
       min-height: 100vh;
+      min-width: 0;
     }
-    /* Pill badges */
-    .pill {
-      display: inline-block; font-size: 9px; padding: 2px 8px;
-      border-radius: 20px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.04em;
-    }
+
+    /* ── Pill badges ── */
+    .pill { display: inline-block; font-size: 9px; padding: 2px 8px; border-radius: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
     .pill-new    { background: rgba(79,142,247,0.12); color: #7eb3fa; border: 1px solid rgba(79,142,247,0.2); }
     .pill-inv    { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
     .pill-part   { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
@@ -105,104 +140,92 @@
     .pill-normal { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.15); }
     .pill-high   { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
     .pill-crit   { background: rgba(239,68,68,0.2);   color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
-    /* Panel */
-    .fs-panel {
-      background: var(--fs-surface);
-      border: 1px solid var(--fs-border);
-      border-radius: 10px;
-      padding: 16px;
-    }
-    .fs-panel-title {
-      font-size: 9px; color: var(--fs-muted);
-      text-transform: uppercase; letter-spacing: 0.08em;
-      margin-bottom: 12px; padding-bottom: 10px;
-      border-bottom: 1px solid var(--fs-border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    /* Table */
-    .fs-table { width: 100%; border-collapse: collapse; }
-    .fs-table th {
-      font-size: 9px; color: var(--fs-muted);
-      text-transform: uppercase; letter-spacing: 0.08em;
-      padding: 0 8px 10px 0; text-align: left;
-      border-bottom: 1px solid var(--fs-border);
-      font-weight: 500;
-    }
-    .fs-table td {
-      padding: 10px 8px 10px 0;
-      border-bottom: 1px solid var(--fs-border);
-      font-size: 11px; color: var(--fs-text);
-      vertical-align: middle;
-    }
+
+    /* ── Panel ── */
+    .fs-panel { background: var(--fs-surface); border: 1px solid var(--fs-border); border-radius: 10px; padding: 16px; }
+    .fs-panel-title { font-size: 9px; color: var(--fs-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--fs-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+    /* ── Table ── */
+    .fs-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fs-table { width: 100%; border-collapse: collapse; min-width: 480px; }
+    .fs-table th { font-size: 9px; color: var(--fs-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 8px 10px 0; text-align: left; border-bottom: 1px solid var(--fs-border); font-weight: 500; white-space: nowrap; }
+    .fs-table td { padding: 10px 8px 10px 0; border-bottom: 1px solid var(--fs-border); font-size: 11px; color: var(--fs-text); vertical-align: middle; }
     .fs-table tr:last-child td { border-bottom: none; }
     .fs-table tr:hover td { background: rgba(255,255,255,0.02); }
-    /* Code chip */
-    .fs-code {
-      font-size: 10px; color: var(--fs-accent);
-      background: rgba(79,142,247,0.1);
-      padding: 2px 7px; border-radius: 4px;
-      text-decoration: none;
-    }
+
+    /* ── Code chip ── */
+    .fs-code { font-size: 10px; color: var(--fs-accent); background: rgba(79,142,247,0.1); padding: 2px 7px; border-radius: 4px; text-decoration: none; white-space: nowrap; }
     .fs-code:hover { background: rgba(79,142,247,0.2); }
-    /* Buttons */
-    .btn-primary { background: var(--fs-accent); color: #fff; border: none; padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
-    .btn-ghost { background: var(--fs-surface2); color: var(--fs-muted); border: 1px solid var(--fs-border2); padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
-    .btn-warn { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
-    /* Form inputs */
-    .fs-input {
-      background: var(--fs-surface);
-      border: 1px solid var(--fs-border2);
-      color: var(--fs-text);
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-family: inherit;
-      width: 100%;
-    }
+
+    /* ── Buttons ── */
+    .btn-primary { background: var(--fs-accent); color: #fff; border: none; padding: 9px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; touch-action: manipulation; }
+    .btn-ghost   { background: var(--fs-surface2); color: var(--fs-muted); border: 1px solid var(--fs-border2); padding: 9px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; touch-action: manipulation; }
+    .btn-warn    { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); padding: 9px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; touch-action: manipulation; }
+
+    /* ── Form inputs ── */
+    .fs-input    { background: var(--fs-surface); border: 1px solid var(--fs-border2); color: var(--fs-text); padding: 10px 12px; border-radius: 6px; font-size: 14px; font-family: inherit; width: 100%; }
     .fs-input:focus { outline: none; border-color: var(--fs-accent); }
-    .fs-select {
-      background: var(--fs-surface);
-      border: 1px solid var(--fs-border2);
-      color: var(--fs-muted);
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-family: inherit;
-    }
-    .fs-textarea {
-      background: var(--fs-surface2);
-      border: 1px solid var(--fs-border2);
-      color: var(--fs-text);
-      padding: 10px 12px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-family: inherit;
-      width: 100%;
-      resize: vertical;
-    }
+    .fs-select   { background: var(--fs-surface); border: 1px solid var(--fs-border2); color: var(--fs-muted); padding: 10px 10px; border-radius: 6px; font-size: 13px; font-family: inherit; width: 100%; }
+    .fs-textarea { background: var(--fs-surface2); border: 1px solid var(--fs-border2); color: var(--fs-text); padding: 10px 12px; border-radius: 6px; font-size: 13px; font-family: inherit; width: 100%; resize: vertical; }
+
     select, input[type="text"], input[type="email"], input[type="password"], input[type="tel"] {
       background: var(--fs-surface) !important;
       border: 1px solid var(--fs-border2) !important;
       color: var(--fs-text) !important;
-      padding: 8px 12px !important;
+      padding: 10px 12px !important;
       border-radius: 6px !important;
-      font-size: 12px !important;
+      font-size: 14px !important;
       font-family: inherit !important;
       width: 100% !important;
     }
-    select:focus, input:focus {
-      outline: none !important;
-      border-color: var(--fs-accent) !important;
-    }
-    /* Messages */
-    .msg-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #4ade80; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+    select:focus, input:focus { outline: none !important; border-color: var(--fs-accent) !important; }
+
+    /* ── Messages ── */
+    .msg-success { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.2);  color: #4ade80; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
     .msg-error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.2);  color: #f87171; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
     .msg-warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #fbbf24; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
     .msg-info    { background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.2); color: #7eb3fa; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      .fs-topbar { display: flex; }
+
+      .fs-sidebar {
+        transform: translateX(-100%);
+        width: 240px;
+      }
+      .fs-sidebar.open { transform: translateX(0); }
+
+      .fs-main {
+        margin-left: 0;
+        padding: 72px 16px 24px;
+      }
+
+      .fs-panel { padding: 12px; }
+
+      .btn-primary, .btn-ghost, .btn-warn {
+        padding: 10px 14px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .fs-main { padding: 64px 12px 20px; }
+      .fs-panel { padding: 10px; border-radius: 8px; }
+    }
   </style>
   {% block extra_css %}{% endblock %}
 </head>
 <body>
+
+<!-- Mobile top bar -->
+<div class="fs-topbar" id="topbar">
+  <button class="fs-hamburger" id="hamburger" aria-label="Menü">&#9776;</button>
+  <span class="fs-topbar-title">ForenScope</span>
+</div>
+
+<!-- Overlay -->
+<div class="fs-overlay" id="overlay"></div>
 
 {% include 'partials/sidebar.html' %}
 
@@ -210,6 +233,23 @@
   {% include 'partials/messages.html' %}
   {% block content %}{% endblock %}
 </div>
+
+<script>
+  const sidebar   = document.querySelector('.fs-sidebar');
+  const overlay   = document.getElementById('overlay');
+  const hamburger = document.getElementById('hamburger');
+
+  function openSidebar()  { sidebar.classList.add('open');  overlay.classList.add('open');  }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+
+  hamburger.addEventListener('click', () =>
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar()
+  );
+  overlay.addEventListener('click', closeSidebar);
+  sidebar.querySelectorAll('.fs-nav-item').forEach(a =>
+    a.addEventListener('click', closeSidebar)
+  );
+</script>
 
 {% block extra_js %}{% endblock %}
 </body>

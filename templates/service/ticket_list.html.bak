@@ -61,7 +61,7 @@
 
 <!-- Table -->
 <div class="fs-panel" id="ticket-table">
-  <div class="fs-table-wrap"><table class="fs-table">
+  <table class="fs-table">
     <thead>
       <tr>
         <th>Kod</th>
@@ -120,7 +120,7 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table></div>
+  </table>
 
   <!-- Pagination -->
   {% if page_obj.has_other_pages %}

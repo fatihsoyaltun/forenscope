@@ -74,7 +74,7 @@
       Son Kayıtlar
       <a href="{% url 'service:ticket_list' %}" style="color:var(--fs-accent);font-size:10px;text-decoration:none;text-transform:none;letter-spacing:0;">Tümünü Gör →</a>
     </div>
-    <div class="fs-table-wrap"><table class="fs-table">
+    <table class="fs-table">
       <thead>
         <tr>
           <th>Kod</th>
@@ -101,7 +101,7 @@
         <tr><td colspan="5" style="color:var(--fs-muted);text-align:center;padding:20px 0;">Henüz kayıt yok</td></tr>
         {% endfor %}
       </tbody>
-    </table></div>
+    </table>
   </div>
 
   <div style="display:flex;flex-direction:column;gap:12px;">

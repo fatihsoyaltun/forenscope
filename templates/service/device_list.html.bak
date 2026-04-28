@@ -24,7 +24,7 @@
 </form>
 
 <div class="fs-panel" id="device-table">
-  <div class="fs-table-wrap"><table class="fs-table">
+  <table class="fs-table">
     <thead>
       <tr>
         <th>Seri No</th>
@@ -55,7 +55,7 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table></div>
+  </table>
 
   {% if page_obj.has_other_pages %}
   <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--fs-border);">

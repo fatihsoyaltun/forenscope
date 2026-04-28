@@ -6,7 +6,7 @@
   <a href="{% url 'accounts:user_create' %}" class="btn-primary">+ Yeni Kullanıcı</a>
 </div>
 <div class="fs-panel">
-  <div class="fs-table-wrap"><table class="fs-table">
+  <table class="fs-table">
     <thead><tr>
       <th>Kullanıcı Adı</th><th>Ad Soyad</th><th>E-posta</th><th>Rol</th><th>Durum</th><th>İşlem</th>
     </tr></thead>
@@ -36,6 +36,6 @@
       <tr><td colspan="6" style="color:var(--fs-muted);text-align:center;padding:20px 0;">Kullanıcı yok</td></tr>
       {% endfor %}
     </tbody>
-  </table></div>
+  </table>
 </div>
 {% endblock %}

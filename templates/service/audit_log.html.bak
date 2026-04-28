@@ -11,7 +11,7 @@
 </div>
 
 <div class="fs-panel">
-  <div class="fs-table-wrap"><table class="fs-table">
+  <table class="fs-table">
     <thead>
       <tr>
         <th>Zaman</th>
@@ -52,6 +52,6 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table></div>
+  </table>
 </div>
 {% endblock %}
