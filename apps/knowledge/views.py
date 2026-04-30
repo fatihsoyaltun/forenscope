@@ -11,7 +11,7 @@ from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 
 from .models import KnowledgeArticle, ArticleAttachment
-from .forms import ArticleForm
+from .forms import ArticleForm, ArticleAttachmentUploadForm
 from apps.service.models import FaultCategory
 
 
@@ -96,6 +96,7 @@ class ArticleDetailView(LoginRequiredMixin, DetailView):
         )
         ctx['is_admin'] = self.request.user.groups.filter(name='Admin').exists()
         ctx['is_technician'] = self.request.user.groups.filter(name='Technician').exists()
+        ctx['upload_form'] = ArticleAttachmentUploadForm()
         return ctx
 
 
@@ -181,6 +182,32 @@ class ArticleArchiveView(LoginRequiredMixin, View):
         article.save()
         messages.success(request, f'"{article.title}" arşivlendi.')
         return redirect(reverse('knowledge:article_list'))
+
+
+class AttachmentUploadView(LoginRequiredMixin, View):
+    def post(self, request, slug):
+        article = get_object_or_404(KnowledgeArticle, slug=slug)
+        if not request.user.groups.filter(name__in=['Admin', 'Technician']).exists():
+            return HttpResponse(status=403)
+        is_admin = request.user.groups.filter(name='Admin').exists()
+        if not is_admin and article.author != request.user:
+            return HttpResponse(status=403)
+
+        form = ArticleAttachmentUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            f = request.FILES['file']
+            att = form.save(commit=False)
+            att.article = article
+            att.original_name = f.name
+            att.size_bytes = f.size
+            att.uploaded_by = request.user
+            att.save()
+            messages.success(request, f'{f.name} yüklendi.')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error[0])
+
+        return redirect(reverse('knowledge:article_detail', kwargs={'slug': slug}))
 
 
 class AttachmentDownloadView(LoginRequiredMixin, View):

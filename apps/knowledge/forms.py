@@ -1,7 +1,27 @@
 from django import forms
 
-from .models import KnowledgeArticle, ARTICLE_STATUS
+from .models import KnowledgeArticle, ArticleAttachment, ARTICLE_ATTACHMENT_KIND
 from apps.service.models import FaultCategory, Symptom
+
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+
+ALLOWED_MIME_TYPES = [
+    'video/mp4', 'video/quicktime', 'video/x-msvideo',
+    'image/jpeg', 'image/png', 'image/webp',
+    'application/pdf',
+    'text/plain',
+]
+
+MAX_SIZE = {
+    'video': 500 * 1024 * 1024,
+    'photo': 50 * 1024 * 1024,
+    'pdf':   50 * 1024 * 1024,
+    'log':   10 * 1024 * 1024,
+}
 
 
 class ArticleForm(forms.ModelForm):
@@ -20,6 +40,25 @@ class ArticleForm(forms.ModelForm):
         self.fields['source_ticket'].required = False
         self.fields['verification_checklist'].required = False
         self.fields['tags'].required = False
-        # Technicians cannot set status — enforced in view
         if user and not user.groups.filter(name='Admin').exists():
             self.fields.pop('status')
+
+
+class ArticleAttachmentUploadForm(forms.ModelForm):
+    class Meta:
+        model = ArticleAttachment
+        fields = ['file', 'kind', 'title']
+
+    def clean_file(self):
+        f = self.cleaned_data['file']
+        if MAGIC_AVAILABLE:
+            mime = magic.from_buffer(f.read(2048), mime=True)
+            f.seek(0)
+            if mime not in ALLOWED_MIME_TYPES:
+                raise forms.ValidationError(f'İzin verilmeyen dosya tipi: {mime}')
+        kind = self.data.get('kind', 'photo')
+        max_size = MAX_SIZE.get(kind, MAX_SIZE['photo'])
+        if f.size > max_size:
+            mb = max_size // (1024 * 1024)
+            raise forms.ValidationError(f'Dosya çok büyük. Maksimum {mb}MB.')
+        return f
