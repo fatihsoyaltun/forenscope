@@ -1,0 +1,273 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} — ForenScope Admin{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  :root {
+    --fs-bg: #0f1117;
+    --fs-surface: #1a1d27;
+    --fs-surface2: #222536;
+    --fs-border: rgba(255,255,255,0.08);
+    --fs-text: #e8eaf0;
+    --fs-muted: #8b90a0;
+    --fs-accent: #4f8ef7;
+    --fs-green: #22c55e;
+    --fs-red: #ef4444;
+    --fs-yellow: #f59e0b;
+  }
+
+  /* ── GENEL ── */
+  html, body {
+    background: var(--fs-bg) !important;
+    color: var(--fs-text) !important;
+    font-family: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace !important;
+    font-size: 13px !important;
+  }
+
+  a { color: var(--fs-accent) !important; }
+  a:hover { color: #7eb3fa !important; }
+
+  /* ── HEADER ── */
+  #header {
+    background: var(--fs-surface) !important;
+    border-bottom: 1px solid var(--fs-border) !important;
+    padding: 12px 20px !important;
+    box-shadow: none !important;
+  }
+  #header a, #header a:link, #header a:visited {
+    color: var(--fs-text) !important;
+    text-decoration: none !important;
+  }
+  #branding h1 { font-size: 15px !important; font-weight: 600 !important; letter-spacing: 0.04em !important; }
+  #branding h1 a { color: var(--fs-accent) !important; }
+  #user-tools { font-size: 11px !important; color: var(--fs-muted) !important; }
+  #user-tools a { color: var(--fs-muted) !important; }
+  #user-tools a:hover { color: var(--fs-text) !important; }
+
+  /* ── NAVİGASYON ── */
+  div.breadcrumbs {
+    background: var(--fs-surface2) !important;
+    border-bottom: 1px solid var(--fs-border) !important;
+    color: var(--fs-muted) !important;
+    padding: 10px 20px !important;
+    font-size: 11px !important;
+  }
+  div.breadcrumbs a { color: var(--fs-accent) !important; }
+
+  /* ── İÇERİK ── */
+  #content { background: var(--fs-bg) !important; padding: 20px !important; }
+  #content h1 { color: var(--fs-text) !important; font-size: 18px !important; font-weight: 600 !important; margin-bottom: 16px !important; }
+  #content-main { background: var(--fs-bg) !important; }
+
+  /* ── MODÜL / PANEL ── */
+  .module {
+    background: var(--fs-surface) !important;
+    border: 1px solid var(--fs-border) !important;
+    border-radius: 8px !important;
+    margin-bottom: 16px !important;
+    overflow: hidden !important;
+  }
+  .module h2, .module caption {
+    background: var(--fs-surface2) !important;
+    color: var(--fs-muted) !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    padding: 10px 14px !important;
+    border-bottom: 1px solid var(--fs-border) !important;
+  }
+  .module table { background: transparent !important; }
+  .module td, .module th { border-color: var(--fs-border) !important; }
+
+  /* ── TABLO ── */
+  #result_list { border: none !important; }
+  #result_list thead th {
+    background: var(--fs-surface2) !important;
+    color: var(--fs-muted) !important;
+    font-size: 9px !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    border-bottom: 1px solid var(--fs-border) !important;
+    padding: 10px 12px !important;
+  }
+  #result_list thead th a { color: var(--fs-muted) !important; }
+  #result_list thead th.sorted a { color: var(--fs-accent) !important; }
+  #result_list tbody tr { background: var(--fs-surface) !important; }
+  #result_list tbody tr:hover { background: var(--fs-surface2) !important; }
+  #result_list tbody td {
+    color: var(--fs-text) !important;
+    border-bottom: 1px solid var(--fs-border) !important;
+    font-size: 12px !important;
+    padding: 10px 12px !important;
+  }
+  #result_list tbody td a { color: var(--fs-accent) !important; }
+  #result_list tbody tr.selected { background: rgba(79,142,247,0.08) !important; }
+
+  /* ── FORM ── */
+  .form-row { border-bottom: 1px solid var(--fs-border) !important; padding: 12px 14px !important; }
+  .form-row label { color: var(--fs-muted) !important; font-size: 11px !important; }
+  input[type=text], input[type=password], input[type=email],
+  input[type=number], input[type=url], textarea, select {
+    background: var(--fs-surface2) !important;
+    border: 1px solid var(--fs-border) !important;
+    color: var(--fs-text) !important;
+    border-radius: 6px !important;
+    padding: 8px 10px !important;
+    font-family: inherit !important;
+    font-size: 12px !important;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--fs-accent) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(79,142,247,0.15) !important;
+  }
+  .help { color: var(--fs-muted) !important; font-size: 10px !important; }
+  .errorlist li { color: var(--fs-red) !important; font-size: 11px !important; }
+
+  /* ── BUTONLAR ── */
+  .submit-row {
+    background: var(--fs-surface) !important;
+    border-top: 1px solid var(--fs-border) !important;
+    padding: 12px 14px !important;
+  }
+  input[type=submit], .button, a.button {
+    background: var(--fs-accent) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 8px 16px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+  }
+  input[type=submit]:hover, .button:hover { background: #3a7be0 !important; }
+  .deletelink, a.deletelink {
+    background: rgba(239,68,68,0.15) !important;
+    color: var(--fs-red) !important;
+    border: 1px solid rgba(239,68,68,0.25) !important;
+  }
+  .deletelink:hover { background: rgba(239,68,68,0.25) !important; }
+
+  /* ── SIDEBAR (dashboard app listesi) ── */
+  #nav-sidebar {
+    background: var(--fs-surface) !important;
+    border-right: 1px solid var(--fs-border) !important;
+  }
+  #nav-sidebar .current-app .section:link,
+  #nav-sidebar .current-app .section:visited {
+    color: var(--fs-accent) !important;
+  }
+  #nav-sidebar a { color: var(--fs-muted) !important; font-size: 12px !important; }
+  #nav-sidebar a:hover { color: var(--fs-text) !important; }
+
+  /* ── MESAJLAR ── */
+  .messagelist li {
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    margin-bottom: 8px !important;
+    padding: 10px 14px !important;
+  }
+  .messagelist .success {
+    background: rgba(34,197,94,0.1) !important;
+    border: 1px solid rgba(34,197,94,0.2) !important;
+    color: #4ade80 !important;
+  }
+  .messagelist .error {
+    background: rgba(239,68,68,0.1) !important;
+    border: 1px solid rgba(239,68,68,0.2) !important;
+    color: #f87171 !important;
+  }
+  .messagelist .warning {
+    background: rgba(245,158,11,0.1) !important;
+    border: 1px solid rgba(245,158,11,0.2) !important;
+    color: #fbbf24 !important;
+  }
+
+  /* ── PAGINATION ── */
+  .paginator { color: var(--fs-muted) !important; font-size: 11px !important; }
+  .paginator a { color: var(--fs-accent) !important; }
+  .paginator .this-page { color: var(--fs-text) !important; font-weight: 600 !important; }
+
+  /* ── SEARCH ── */
+  #toolbar { background: var(--fs-surface2) !important; border-bottom: 1px solid var(--fs-border) !important; padding: 10px 14px !important; }
+  #searchbar { background: var(--fs-surface) !important; border: 1px solid var(--fs-border) !important; color: var(--fs-text) !important; border-radius: 6px !important; padding: 7px 10px !important; }
+  #search-bar-container input[type=submit] { background: var(--fs-surface2) !important; border: 1px solid var(--fs-border) !important; color: var(--fs-muted) !important; }
+
+  /* ── FİLTRE ── */
+  #changelist-filter {
+    background: var(--fs-surface) !important;
+    border-left: 1px solid var(--fs-border) !important;
+  }
+  #changelist-filter h2 {
+    background: var(--fs-surface2) !important;
+    color: var(--fs-muted) !important;
+    font-size: 9px !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    border-bottom: 1px solid var(--fs-border) !important;
+    padding: 10px 14px !important;
+  }
+  #changelist-filter h3 { color: var(--fs-muted) !important; font-size: 10px !important; }
+  #changelist-filter li { border-bottom: 1px solid var(--fs-border) !important; }
+  #changelist-filter li a { color: var(--fs-muted) !important; font-size: 11px !important; padding: 6px 14px !important; display: block !important; }
+  #changelist-filter li a:hover { color: var(--fs-text) !important; background: var(--fs-surface2) !important; }
+  #changelist-filter li.selected a { color: var(--fs-accent) !important; }
+
+  /* ── ACTIONS ── */
+  .actions {
+    background: var(--fs-surface2) !important;
+    border-bottom: 1px solid var(--fs-border) !important;
+    padding: 8px 12px !important;
+  }
+  select#action-select {
+    background: var(--fs-surface) !important;
+    border: 1px solid var(--fs-border) !important;
+    color: var(--fs-text) !important;
+    border-radius: 6px !important;
+  }
+
+  /* ── CHECKBOX ── */
+  input[type=checkbox] { accent-color: var(--fs-accent) !important; }
+
+  /* ── OBJECT TOOLS ── */
+  .object-tools a {
+    background: var(--fs-surface2) !important;
+    border: 1px solid var(--fs-border) !important;
+    color: var(--fs-muted) !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+  }
+  .object-tools a:hover { color: var(--fs-text) !important; border-color: var(--fs-border) !important; }
+  .object-tools a.addlink { color: var(--fs-accent) !important; border-color: rgba(79,142,247,0.3) !important; }
+
+  /* ── INLINE ── */
+  .inline-group { background: var(--fs-surface) !important; border: 1px solid var(--fs-border) !important; border-radius: 8px !important; }
+  .inline-group h2 { background: var(--fs-surface2) !important; color: var(--fs-muted) !important; font-size: 10px !important; }
+  .inline-related { border-top: 1px solid var(--fs-border) !important; }
+
+  /* ── CALENDAR / DATE ── */
+  .calendarbox, .clockbox { background: var(--fs-surface) !important; border: 1px solid var(--fs-border) !important; border-radius: 8px !important; color: var(--fs-text) !important; }
+  .calendar td a { color: var(--fs-text) !important; }
+  .calendar td.selected a { background: var(--fs-accent) !important; border-radius: 4px !important; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--fs-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--fs-border); border-radius: 3px; }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}">
+    <span style="color:var(--fs-accent);font-size:14px;font-weight:700;letter-spacing:0.05em;">FOREN</span><span style="color:var(--fs-text);font-size:14px;font-weight:700;">SCOPE</span>
+    <span style="color:var(--fs-muted);font-size:10px;margin-left:8px;font-weight:400;">Admin Panel</span>
+  </a>
+</h1>
+{% endblock %}
