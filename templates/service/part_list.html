@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
-
 {% block title %}Parçalar — ForenScope{% endblock %}
-
 {% block content %}
 <div style="margin-bottom:20px;">
   <div style="font-size:16px;font-weight:600;">Parçalar</div>
@@ -9,14 +7,12 @@
     {{ parts|length }} aktif parça
   </div>
 </div>
-
 <div class="fs-panel">
   <div class="fs-table-wrap"><table class="fs-table">
     <thead>
       <tr>
         <th>Parça Adı</th>
-        <th>Parça No</th>
-        <th>Kategori</th>
+        <th>Parça Kodu</th>
         <th style="text-align:right;">Kullanım</th>
       </tr>
     </thead>
@@ -24,23 +20,14 @@
       {% for part in parts %}
       <tr>
         <td style="font-weight:500;">{{ part.name }}</td>
-        <td>
-          {% if part.part_number %}
-          <span class="fs-code">{{ part.part_number }}</span>
-          {% else %}
-          <span style="color:var(--fs-muted);font-size:10px;">—</span>
-          {% endif %}
-        </td>
-        <td style="color:var(--fs-muted);font-size:10px;">
-          {{ part.category|default:"—" }}
-        </td>
+        <td><span class="fs-code">{{ part.code }}</span></td>
         <td style="text-align:right;">
           <span style="color:var(--fs-accent);font-weight:600;font-size:11px;">{{ part.usage }}</span>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="4" style="text-align:center;color:var(--fs-muted);padding:30px 0;">
+        <td colspan="3" style="text-align:center;color:var(--fs-muted);padding:30px 0;">
           Parça bulunamadı
         </td>
       </tr>
