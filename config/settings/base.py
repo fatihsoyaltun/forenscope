@@ -176,26 +176,52 @@ JAZZMIN_SETTINGS = {
     "site_header": "ForenScope",
     "site_brand": "ForenScope",
     "welcome_sign": "ForenScope Servis Yönetimi",
+    "copyright": "ForenScope © 2026",
+    "search_model": ["service.ServiceTicket", "service.Device", "knowledge.KnowledgeArticle"],
+
+    # Dashboard customization
     "show_sidebar": True,
     "navigation_expanded": True,
-    "hide_apps": ["otp_static", "otp_totp", "two_factor"],
+    "hide_apps": ["otp_static", "otp_totp", "two_factor", "axes", "auditlog"],
+
+    # Top menu (üst nav linkleri)
+    "topmenu_links": [
+        {"name": "Ana Sayfa", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Siteyi Görüntüle", "url": "/", "new_window": True},
+    ],
+
+    # User menu
+    "usermenu_links": [
+        {"name": "Profil", "url": "/account/profile/"},
+        {"model": "auth.user"},
+    ],
+
     "icons": {
-        "accounts.customuser": "fas fa-users",
-        "auth.Group": "fas fa-shield-alt",
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "accounts.customuser": "fas fa-id-card",
+        "service": "fas fa-wrench",
         "service.serviceticket": "fas fa-ticket-alt",
         "service.device": "fas fa-camera",
-        "service.part": "fas fa-tools",
-        "service.faultcategory": "fas fa-tags",
-        "service.symptom": "fas fa-exclamation-triangle",
-        "knowledge.knowledgearticle": "fas fa-book",
-        "auditlog.logentry": "fas fa-history",
+        "service.part": "fas fa-cogs",
+        "service.faultcategory": "fas fa-folder",
+        "service.symptom": "fas fa-exclamation-circle",
+        "knowledge": "fas fa-book",
+        "knowledge.knowledgearticle": "fas fa-file-alt",
+        "knowledge.articleattachment": "fas fa-paperclip",
     },
-    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_parents": "fas fa-chevron-right",
     "default_icon_children": "fas fa-circle",
-    "related_modal_active": False,
-    "custom_css": None,
-    "custom_js": None,
-    "use_google_fonts_cdn": False,
+
+    # Form layout
+    "changeform_format": "horizontal_tabs",
+    "related_modal_active": True,
+
+    # Custom CSS
+    "custom_css": "admin/forenscope.css",
+    "use_google_fonts_cdn": True,
+
     "show_ui_builder": False,
 }
 
@@ -204,9 +230,9 @@ JAZZMIN_UI_TWEAKS = {
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
-    "brand_colour": "navbar-dark",
+    "brand_colour": False,
     "accent": "accent-primary",
-    "navbar": "navbar-dark",
+    "navbar": "navbar-dark bg-dark",
     "no_navbar_border": True,
     "navbar_fixed": True,
     "layout_boxed": False,
@@ -223,7 +249,7 @@ JAZZMIN_UI_TWEAKS = {
     "dark_mode_theme": "darkly",
     "button_classes": {
         "primary": "btn-primary",
-        "secondary": "btn-secondary",
+        "secondary": "btn-outline-secondary",
         "info": "btn-info",
         "warning": "btn-warning",
         "danger": "btn-danger",
