@@ -4,19 +4,30 @@ from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=[
+# Railway can create a new public domain on each project/service. Avoid 400 DisallowedHost
+# by accepting the Railway generated domain automatically. Custom domains can still be
+# supplied with DJANGO_ALLOWED_HOSTS.
+RAILWAY_PUBLIC_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+EXTRA_ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=[])
+ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.railway.app',
-    '.onrender.com',
     '.up.railway.app',
-])
+    '.onrender.com',
+    'web-production-87c7d.up.railway.app',
+    *EXTRA_ALLOWED_HOSTS,
+]
+if RAILWAY_PUBLIC_DOMAIN:
+    ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
 
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
     'https://*.railway.app',
     'https://*.up.railway.app',
     'https://*.onrender.com',
 ])
+if RAILWAY_PUBLIC_DOMAIN:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RAILWAY_PUBLIC_DOMAIN}')
 
 # Use DATABASE_URL if injected by Railway/Render, fall back to .env vars from base.py
 DATABASE_URL = os.environ.get('DATABASE_URL')
