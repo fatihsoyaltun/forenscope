@@ -18,14 +18,14 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
     'https://*.onrender.com',
 ])
 
-# Use DATABASE_URL if injected by Railway/Render, fall back to .env vars
+# Use DATABASE_URL if injected by Railway/Render, fall back to .env vars from base.py
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(
             DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True,
+            ssl_require=env.bool('DB_SSL_REQUIRE', default=False),
         )
     }
 
